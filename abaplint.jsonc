@@ -1,27 +1,32 @@
 {
-    "global": {
-      "files": "/src/**/*.*"
-    },
-    "dependencies": [
+  "global": {
+    "files": "/src/**/*.*"
+  },
+  "dependencies": [
     {
       "url": "https://github.com/abapedia/steampunk-2305-api-intersect-702",
       "folder": "/deps",
       "files": "/src/**/*.*"
     },
     {
-      "url": "https://github.com/abap2UI5-addons/layout-variant-management",
-      "folder": "/abap2UI5-layout",
+      "url": "https://github.com/abap2UI5/abap2UI5",
+      "folder": "/abap2UI5",
       "files": "/src/**/*.*"
     },
     {
-      "url": "https://github.com/abap2UI5/abap2UI5",
-      "folder": "/abap2UI5",
+      "url": "https://github.com/abap2UI5-addons/layout-management",
+      "folder": "/src",
+      "files": "/src/**/*.*"
+    },
+    {
+      "url": "https://github.com/abap2UI5-addons/selection-screen",
+      "folder": "/src",
       "files": "/src/**/*.*"
     }
   ],
   "syntax": {
     "version": "v750",
-    "errorNamespace": "^(Z|Y|LCL_|TY_|LIF_)"
+    "errorNamespace": "."
   },
   "rules": {
     "downport": true,
@@ -36,6 +41,7 @@
     "parser_error": true,
     "superclass_final": true,
     "unknown_types": true,
-    "xml_consistency": true
+    "xml_consistency": true,
+    "prefix_is_current_class": true
   }
 }

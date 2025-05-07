@@ -1,39 +1,31 @@
-## ABAP SE16 for Cloud
-SE16 for S/4 Public Cloud
+[![ABAP_STANDARD](https://github.com/abap2UI5-addons/se16n/actions/workflows/ABAP_STANDARD.yaml/badge.svg)](https://github.com/abap2UI5-addons/se16n/actions/workflows/ABAP_STANDARD.yaml)
+[![ABAP_CLOUD](https://github.com/abap2UI5-addons/se16n/actions/workflows/ABAP_CLOUD.yaml/badge.svg)](https://github.com/abap2UI5-addons/se16n/actions/workflows/ABAP_CLOUD.yaml)
+<br>
+[![rename_test](https://github.com/abap2UI5-addons/se16n/actions/workflows/rename_test.yaml/badge.svg)](https://github.com/abap2UI5-addons/se16n/actions/workflows/rename_test.yaml)
 
-#### Features
-* Set Select Options
-* Display any Table
-* Save & Load Variants
+# se16n
 
-#### Compatibility:
-* BTP ABAP Environment (ABAP for Cloud)
-* S/4 Public Cloud ABAP Environment (ABAP for Cloud)
+#### Key Features
+* se16n transaction in your browser
+  
+#### Compatibility
+* S/4 Public Cloud and BTP ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 
-#### Required Projects:
-* [S-RTTI](https://github.com/sandraros/S-RTTI)
+#### Dependencies
 * [abap2UI5](https://github.com/abap2UI5/abap2UI5)
-* [Layout-Variant-Management](https://github.com/abap2UI5-addons/layout-variant-management)
+* [layout-management](https://github.com/abap2UI5-addons/layout-management)
+* [selection-screen](https://github.com/abap2UI5-addons/selection-screen)
 
 
-#### TODO
-* Variant Persistence
-* Bug fixes
+#### Demo
+
+###### Selection
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/9757ea6f-de3f-4819-ae0b-1fe2ff21237c" />
+
+###### View
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/08da18b1-b9a2-45b1-a632-37e8719b53c8" />
 
 #### Contribution & Support
-Pull Requests are welcome! Whether you're fixing a bug, adding new functionality, or improving the documentation, your contributions are always appreciated. If you run into problems, feel free to open an issue.
-
-## Demo
-
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/6be55b3b-c106-41f8-9178-676c6808cfe2">
-<img width="800" alt="image" src="https://github.com/user-attachments/assets/3c06fd3e-f463-4719-a9da-82cfbcc3bd70">
-
-
-
-
-
-
-
-
+Pull requests are welcome! Whether you're fixing bugs, adding new functionality, or improving documentation, your contributions are highly appreciated. If you encounter any issues, feel free to open an issue.
