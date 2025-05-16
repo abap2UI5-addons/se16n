@@ -32,7 +32,7 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
         client->nav_app_leave( ).
       WHEN OTHERS.
         z2ui5_cl_layo_pop=>on_event_layout( client = client
-                                                      layout = mo_layout ).
+                                            layout = mo_layout ).
     ENDCASE.
 
   ENDMETHOD.
@@ -49,9 +49,9 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
                      shownavbutton  = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ) ).
 
     z2ui5_cl_layo_xml_builder=>xml_build_table( i_data   = mo_sql->ms_sql-t_ref
-                                           i_xml    = page
-                                           i_client = client
-                                           i_layout = mo_layout ).
+                                                i_xml    = page
+                                                i_client = client
+                                                i_layout = mo_layout ).
 
     page->footer( )->overflow_toolbar(
         )->button( text  = `Back`
@@ -125,13 +125,22 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
       IF mo_sql->ms_sql-layout_id IS INITIAL.
 
         mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                              data     = mo_sql->ms_sql-t_ref
-                                              handle01 = 'ZSE16'
-                                              handle02 = mo_sql->ms_sql-tabname
-                                              handle03 = ''
-                                              handle04 = '' ).
+                                                    data     = mo_sql->ms_sql-t_ref
+                                                    handle01 = 'ZSE16'
+                                                    handle02 = mo_sql->ms_sql-tabname
+                                                    handle03 = ''
+                                                    handle04 = '' ).
       ELSE.
-*        mo_layout = z2ui5_cl_layo_manager=>factory_by_guid( layout_guid = mo_sql->ms_sql-layout_id ).
+
+        mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
+                                                    data     = mo_sql->ms_sql-t_ref
+                                                    handle01 = 'ZSE16'
+                                                    handle02 = mo_sql->ms_sql-tabname
+                                                    handle03 = ''
+                                                    handle04 = '' ).
+
+        mo_layout = z2ui5_cl_layo_manager=>factory_by_guid( layout_guid = mo_sql->ms_sql-layout_id
+                                                            t_comps     = mo_layout->ms_layout-t_layout ).
       ENDIF.
 
     ENDIF.
