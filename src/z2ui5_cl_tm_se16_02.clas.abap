@@ -4,7 +4,7 @@ CLASS z2ui5_cl_tm_se16_02 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     DATA mo_sql     TYPE REF TO z2ui5_cl_layo_var_sql.
-    DATA mo_variant TYPE REF TO z2ui5_cl_layo_var_db.
+    DATA mo_variant TYPE REF TO z2ui5_cl_sel_var_db.
     DATA mo_layout  TYPE REF TO z2ui5_cl_layo_manager.
 
   PROTECTED SECTION.
