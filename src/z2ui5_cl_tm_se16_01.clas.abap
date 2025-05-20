@@ -3,14 +3,17 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA mo_ui_ranges TYPE REF TO z2ui5_cl_layo_var_ui.
+    DATA mv_tabname     TYPE string VALUE `USR01`.
+    DATA mr_table       TYPE REF TO data.
+    DATA mo_multiselect TYPE REF TO z2ui5_cl_sel_multisel.
+    DATA ms_layout TYPE z2ui5_t_11.
+    METHODS on_navigated.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
     METHODS on_event.
     METHODS view_display.
-    METHODS on_navigated.
     METHODS on_init.
 
   PRIVATE SECTION.
@@ -23,20 +26,19 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN 'DISPLAY_POPUP_SELECT_LAYOUT'.
-        client->nav_app_call( z2ui5_cl_layo_manager=>choose_layout( handle01 = 'ZSE16'
-                                                              handle02 = mo_ui_ranges->mo_sql->ms_sql-tabname ) ).
+      WHEN 'POPUP_LAYOUT'.
+        client->nav_app_call( z2ui5_cl_layo_manager=>choose_layout(
+            handle01 = 'ZSE16'
+            handle02 = mv_tabname ) ).
+
+      WHEN 'UPDATE_TABLE'.
+        on_init( ).
 
       WHEN 'GO'.
-        DATA(lo_tab_output) = NEW z2ui5_cl_tm_se16_02( ).
-        lo_tab_output->mo_sql = z2ui5_cl_layo_var_sql=>factory( mo_ui_ranges->mo_sql->ms_sql ).
-        client->nav_app_call( lo_tab_output ).
+        client->nav_app_call( NEW z2ui5_cl_tm_se16_02( ) ).
 
       WHEN 'BACK'.
         client->nav_app_leave( ).
-
-      WHEN OTHERS.
-        mo_ui_ranges->on_event( client ).
 
     ENDCASE.
 
@@ -51,17 +53,26 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
                                        shownavbutton  = client->check_app_prev_stack( )
                                         floatingfooter = abap_true
                                         ).
+    DATA(vbox) = page->vbox( ).
 
-    IF mo_ui_ranges->mo_sql->ms_sql-tabname IS NOT INITIAL.
-      mo_ui_ranges->paint( view   = page
-                           client = client ).
+    vbox->hbox(
+        )->input(  value = client->_bind_edit( mv_tabname ) description = `Table` submit = client->_event( `UPDATE_TABLE` )
+        )->button( press = client->_event( `UPDATE_TABLE` ) text = `Post`
+        ).
+    vbox->hbox(
+        )->input(  value = client->_bind_edit( ms_layout-layout ) description = `Layout` enabled = abap_false
+        )->button( press = client->_event( `POPUP_LAYOUT` ) text = `Post`
+      ).
+    IF mv_tabname IS NOT INITIAL.
+      mo_multiselect->set_output( client = client view = vbox ).
     ENDIF.
+
 
     page->footer( )->overflow_toolbar(
         )->toolbar_spacer(
-        )->button( text  = z2ui5_cl_layo_var_ui=>go_button( )-text
+        )->button( text  = `GO`
                    type  = `Emphasized`
-                   press = client->_event( z2ui5_cl_layo_var_ui=>go_button( )-event_name ) ).
+                   press = client->_event( `GO` ) ).
 
     client->view_display( view->stringify( ) ).
 
@@ -69,21 +80,46 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
     TRY.
-
         me->client = client.
 
         IF client->check_on_init( ).
           on_init( ).
-        ELSEIF client->check_on_navigated( ).
-          on_navigated( ).
-        ELSE.
-          on_event( ).
+          RETURN.
         ENDIF.
+
+        IF mo_multiselect->main( client ).
+          RETURN.
+        ENDIF.
+
+        IF client->check_on_navigated( ).
+          on_navigated( ).
+        ENDIF.
+        on_event( ).
 
       CATCH cx_root INTO DATA(x).
         client->message_box_display( x ).
     ENDTRY.
   ENDMETHOD.
+
+  METHOD on_init.
+
+    mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mv_tabname ).
+    mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
+                       val       = mv_tabname
+                      s_variant =  VALUE #( handle01 = 'ZSE16' )
+             ).
+
+*    mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
+*                                          data     = mr_table
+*                                          handle01 = 'ZSE16'
+*                                          handle02 = mv_tabname ).
+
+
+
+    view_display( ).
+
+  ENDMETHOD.
+
 
   METHOD on_navigated.
 
@@ -92,50 +128,18 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
         DATA(lo_layout) = lo_popup->result( ).
 
         IF lo_layout-check_confirmed = abap_true.
-
           FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
           ASSIGN lo_layout-row->* TO <layout>.
-
-          mo_ui_ranges->mo_sql->ms_sql-layout_name = <layout>-layout.
-          mo_ui_ranges->mo_sql->ms_sql-layout_id   = <layout>-guid.
-          client->view_model_update( ).
-
+          ms_layout = <layout>.
         ENDIF.
-
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
-        CAST z2ui5_cl_tm_se16_02( client->get_app_prev( ) ).
-        view_display( ).
         RETURN.
       CATCH cx_root.
     ENDTRY.
-
-    mo_ui_ranges->on_navigated( client ).
-
-  ENDMETHOD.
-
-  METHOD on_init.
-
-    DATA lr_table TYPE REF TO data.
-
-    mo_ui_ranges = NEW z2ui5_cl_layo_var_ui( ).
-    mo_ui_ranges->mo_sql = NEW #( ).
-    mo_ui_ranges->mo_sql->ms_sql-tabname = `USR01`.
-    mo_ui_ranges->mo_sql->ms_sql-count   = `500`.
-
-    lr_table = z2ui5_cl_util=>rtti_create_tab_by_name( `T100` ).
-    mo_ui_ranges->mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                          data     = lr_table
-                                          handle01 = 'Z2UI5_CL_SE16'
-                                          handle02 = mo_ui_ranges->mo_sql->ms_sql-tabname
-                                          handle03 = ''
-                                          handle04 = '' ).
-
-    mo_ui_ranges->init_filter_tab( ).
-    view_display( ).
-
+    TRY.
+        DATA(lo_app) = CAST z2ui5_cl_tm_se16_02( client->get_app_prev( ) ).
+        view_display( ).
+      CATCH cx_root.
+    ENDTRY.
   ENDMETHOD.
 
 ENDCLASS.

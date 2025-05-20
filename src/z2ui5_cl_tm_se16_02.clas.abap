@@ -3,13 +3,12 @@ CLASS z2ui5_cl_tm_se16_02 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA mo_sql     TYPE REF TO z2ui5_cl_layo_var_sql.
-    DATA mo_variant TYPE REF TO z2ui5_cl_sel_var_db.
-    DATA mo_layout  TYPE REF TO z2ui5_cl_layo_manager.
+    DATA mo_layout TYPE REF TO z2ui5_cl_layo_manager.
+    DATA mo_prev   TYPE REF TO z2ui5_cl_tm_se16_01.
+    DATA mr_table  TYPE REF TO data.
 
   PROTECTED SECTION.
-    DATA client               TYPE REF TO z2ui5_if_client.
-    DATA mv_check_initialized TYPE abap_bool.
+    DATA client TYPE REF TO z2ui5_if_client.
 
     METHODS on_event.
     METHODS view_display.
@@ -26,7 +25,7 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN `BUTTON_START`.
-        mo_sql->read( ).
+*        mo_sql->read( ).
         view_display( ).
       WHEN 'BACK'.
         client->nav_app_leave( ).
@@ -43,12 +42,12 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
     DATA(page) = view->shell( )->page(
                      id             = `page_main`
-                     title          = |abap2UI5 - SE16-CLOUD -{ mo_sql->ms_sql-tabname }|
+                     title          = |abap2UI5 - SE16-CLOUD -{ mo_prev->mv_tabname }|
                      navbuttonpress = client->_event( 'BACK' )
                      floatingfooter = abap_true
                      shownavbutton  = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ) ).
 
-    z2ui5_cl_layo_xml_builder=>xml_build_table( i_data   = mo_sql->ms_sql-t_ref
+    z2ui5_cl_layo_xml_builder=>xml_build_table( i_data   = mr_table
                                                 i_xml    = page
                                                 i_client = client
                                                 i_layout = mo_layout ).
@@ -69,33 +68,22 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
         me->client = client.
 
-        IF mv_check_initialized = abap_false.
-          mv_check_initialized = abap_true.
+        IF client->check_on_init( ).
           on_init( ).
-          RETURN.
-
-        ENDIF.
-
-        IF client->get( )-check_on_navigated = abap_true.
+        ELSEIF client->check_on_navigated( ).
           on_navigated( ).
-          RETURN.
-        ENDIF.
-
-        IF client->get( )-event IS NOT INITIAL.
+        ELSEIF client->get( )-event IS NOT INITIAL.
           on_event( ).
-          RETURN.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        client->message_box_display( text = x->get_text( )
-                                     type = `error` ).
+        client->message_box_display( x ).
     ENDTRY.
   ENDMETHOD.
 
   METHOD on_navigated.
 
     TRY.
-
         DATA(app) = CAST z2ui5_cl_layo_pop( client->get_app( client->get( )-s_draft-id_prev_app ) ).
         mo_layout = app->mo_layout.
 
@@ -113,33 +101,25 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
   METHOD on_init.
 
-    IF mo_sql IS NOT BOUND.
-      mo_sql = z2ui5_cl_layo_var_sql=>factory( ).
-      mo_sql->ms_sql-tabname = 'USR01'.
-    ENDIF.
-
-    mo_sql->read( ).
+    mo_prev = CAST #( client->get_app_prev( ) ).
+    mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mo_prev->mv_tabname ).
 
     IF mo_layout IS NOT BOUND.
 
-      IF mo_sql->ms_sql-layout_id IS INITIAL.
+      IF mo_prev->ms_layout-guid IS INITIAL.
 
         mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                                    data     = mo_sql->ms_sql-t_ref
+                                                    data     = mr_table
                                                     handle01 = 'ZSE16'
-                                                    handle02 = mo_sql->ms_sql-tabname
-                                                    handle03 = ''
-                                                    handle04 = '' ).
+                                                    handle02 = mo_prev->mv_tabname ).
       ELSE.
 
         mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                                    data     = mo_sql->ms_sql-t_ref
+                                                    data     = mr_table
                                                     handle01 = 'ZSE16'
-                                                    handle02 = mo_sql->ms_sql-tabname
-                                                    handle03 = ''
-                                                    handle04 = '' ).
+                                                    handle02 = mo_prev->mv_tabname ).
 
-        mo_layout = z2ui5_cl_layo_manager=>factory_by_guid( layout_guid = mo_sql->ms_sql-layout_id
+        mo_layout = z2ui5_cl_layo_manager=>factory_by_guid( layout_guid = mo_prev->ms_layout-guid
                                                             t_comps     = mo_layout->ms_layout-t_layout ).
       ENDIF.
 

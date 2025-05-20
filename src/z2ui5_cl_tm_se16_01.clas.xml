@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_TM_SE16_01</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>se16 - selection screen</DESCRIPT>
+    <DESCRIPT>se16n - selection screen</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
