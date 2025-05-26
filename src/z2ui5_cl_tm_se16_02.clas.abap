@@ -10,6 +10,8 @@ CLASS z2ui5_cl_tm_se16_02 DEFINITION PUBLIC.
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
 
+    METHODS set_data.
+
     METHODS on_event.
     METHODS view_display.
     METHODS on_navigated.
@@ -21,11 +23,23 @@ ENDCLASS.
 
 CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
+  METHOD set_data.
+
+    DATA(lv_where) = z2ui5_cl_util=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
+    SELECT FROM (mo_prev->mv_tabname)
+     FIELDS
+       *
+      WHERE (lv_where)
+     INTO TABLE @mr_table->*
+     UP TO 100 ROWS.
+
+  ENDMETHOD.
+
   METHOD on_event.
 
     CASE client->get( )-event.
       WHEN `BUTTON_START`.
-*        mo_sql->read( ).
+        set_data( ).
         view_display( ).
       WHEN 'BACK'.
         client->nav_app_leave( ).
@@ -103,6 +117,7 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
     mo_prev = CAST #( client->get_app_prev( ) ).
     mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mo_prev->mv_tabname ).
+    set_data( ).
 
     IF mo_layout IS NOT BOUND.
 

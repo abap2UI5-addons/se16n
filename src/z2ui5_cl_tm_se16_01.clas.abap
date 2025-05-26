@@ -93,6 +93,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
         IF client->check_on_navigated( ).
           on_navigated( ).
+          RETURN.
         ENDIF.
         on_event( ).
 
@@ -106,7 +107,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
     mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mv_tabname ).
     mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
                        val       = mv_tabname
-                      s_variant =  VALUE #( handle01 = 'ZSE16' )
+                      s_variant =  VALUE #( handle01 = 'ZSE16' handle02 = mv_tabname )
              ).
 
 *    mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
