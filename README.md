@@ -22,10 +22,11 @@
 #### Demo
 
 ###### Selection
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/9757ea6f-de3f-4819-ae0b-1fe2ff21237c" />
+<img width="600" alt="Google Chrome 2025-05-26 14 02 18" src="https://github.com/user-attachments/assets/903c6a3b-a4bb-4c52-85c7-c63cc680580a" />
 
 ###### View
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/08da18b1-b9a2-45b1-a632-37e8719b53c8" />
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/43565e2b-0eab-47bc-a0ed-e822a476aeb4" />
+
 
 #### Contribution & Support
 Pull requests are welcome! Whether you're fixing bugs, adding new functionality, or improving documentation, your contributions are highly appreciated. If you encounter any issues, feel free to open an issue.
