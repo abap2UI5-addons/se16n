@@ -26,18 +26,26 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
   METHOD set_data.
 
     DATA(lv_where) = z2ui5_cl_util=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
-    SELECT FROM (mo_prev->mv_tabname)
-     FIELDS
-       *
-      WHERE (lv_where)
-     INTO TABLE @mr_table->*
-     UP TO 100 ROWS.
+    CLEAR mr_table->*.
+    TRY.
+
+        SELECT FROM (mo_prev->mv_tabname)
+         FIELDS
+           *
+          WHERE (lv_where)
+         INTO CORRESPONDING FIELDS OF TABLE @mr_table->*
+         UP TO 100 ROWS.
+
+      CATCH cx_root INTO DATA(x).
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD on_event.
 
     CASE client->get( )-event.
+      WHEN `REFRESH`.
+        set_data( ).
       WHEN `BUTTON_START`.
         set_data( ).
         view_display( ).

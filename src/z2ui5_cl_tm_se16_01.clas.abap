@@ -3,7 +3,7 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA mv_tabname     TYPE string VALUE `USR01`.
+    DATA mv_tabname     TYPE string.
     DATA mr_table       TYPE REF TO data.
     DATA mo_multiselect TYPE REF TO z2ui5_cl_sel_multisel.
     DATA ms_layout TYPE z2ui5_t_11.
@@ -47,12 +47,10 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( ).
-
     DATA(page) = view->shell( )->page( title          = 'abap2UI5 - SE16 CLOUD - Start'
                                        navbuttonpress = client->_event( 'BACK' )
                                        shownavbutton  = client->check_app_prev_stack( )
-                                        floatingfooter = abap_true
-                                        ).
+                                       floatingfooter = abap_true ).
     DATA(vbox) = page->vbox( ).
 
     vbox->hbox(
@@ -66,15 +64,13 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
     IF mv_tabname IS NOT INITIAL.
       mo_multiselect->set_output( client = client view = vbox ).
     ENDIF.
-
-
     page->footer( )->overflow_toolbar(
         )->toolbar_spacer(
         )->button( text  = `GO`
                    type  = `Emphasized`
                    press = client->_event( `GO` ) ).
 
-    client->view_display( view->stringify( ) ).
+    client->view_display( view ).
 
   ENDMETHOD.
 
@@ -84,18 +80,12 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
         IF client->check_on_init( ).
           on_init( ).
-          RETURN.
-        ENDIF.
-
-        IF mo_multiselect->main( client ).
-          RETURN.
-        ENDIF.
-
-        IF client->check_on_navigated( ).
+        ELSEIF mo_multiselect->main( client ).
+        ELSEIF client->check_on_navigated( ).
           on_navigated( ).
-          RETURN.
+        ELSE.
+          on_event( ).
         ENDIF.
-        on_event( ).
 
       CATCH cx_root INTO DATA(x).
         client->message_box_display( x ).
@@ -103,6 +93,10 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD on_init.
+
+    IF mv_tabname IS INITIAL.
+      mv_tabname = `z2ui5_t_15`.
+    ENDIF.
 
     mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mv_tabname ).
     mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
