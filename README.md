@@ -6,12 +6,12 @@
 # se16n
 
 #### Key Features
-* se16n transaction in your browser
-  
+* SE16N transaction in your browser
+
 #### Compatibility
 * S/4 Public Cloud and BTP ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
+* SAP NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 
 #### Dependencies
 * [abap2UI5](https://github.com/abap2UI5/abap2UI5)
@@ -22,10 +22,10 @@
 #### Demo
 
 ###### Selection
-<img width="600" alt="Google Chrome 2025-05-26 14 02 18" src="https://github.com/user-attachments/assets/903c6a3b-a4bb-4c52-85c7-c63cc680580a" />
+<img width="600" alt="Selection screen" src="https://github.com/user-attachments/assets/903c6a3b-a4bb-4c52-85c7-c63cc680580a" />
 
 ###### View
-<img width="600" alt="image" src="https://github.com/user-attachments/assets/43565e2b-0eab-47bc-a0ed-e822a476aeb4" />
+<img width="600" alt="Table display" src="https://github.com/user-attachments/assets/43565e2b-0eab-47bc-a0ed-e822a476aeb4" />
 
 
 #### Contribution & Support

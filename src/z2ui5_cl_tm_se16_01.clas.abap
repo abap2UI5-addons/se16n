@@ -6,7 +6,8 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
     DATA mv_tabname     TYPE string.
     DATA mr_table       TYPE REF TO data.
     DATA mo_multiselect TYPE REF TO z2ui5_cl_sel_multisel.
-    DATA ms_layout TYPE z2ui5_t_11.
+    DATA ms_layout      TYPE z2ui5_t_11.
+
     METHODS on_navigated.
 
   PROTECTED SECTION.
@@ -26,18 +27,18 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN 'POPUP_LAYOUT'.
+      WHEN `POPUP_LAYOUT`.
         client->nav_app_call( z2ui5_cl_layo_manager=>choose_layout(
-            handle01 = 'ZSE16'
+            handle01 = `ZSE16`
             handle02 = mv_tabname ) ).
 
-      WHEN 'UPDATE_TABLE'.
+      WHEN `UPDATE_TABLE`.
         on_init( ).
 
-      WHEN 'GO'.
+      WHEN `GO`.
         client->nav_app_call( NEW z2ui5_cl_tm_se16_02( ) ).
 
-      WHEN 'BACK'.
+      WHEN `BACK`.
         client->nav_app_leave( ).
 
     ENDCASE.
@@ -47,20 +48,24 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
   METHOD view_display.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( ).
-    DATA(page) = view->shell( )->page( title          = 'abap2UI5 - SE16 CLOUD - Start'
-                                       navbuttonpress = client->_event( 'BACK' )
+    DATA(page) = view->shell( )->page( title          = `abap2UI5 - SE16 CLOUD - Start`
+                                       navbuttonpress = client->_event( `BACK` )
                                        shownavbutton  = client->check_app_prev_stack( )
                                        floatingfooter = abap_true ).
     DATA(vbox) = page->vbox( ).
 
     vbox->hbox(
-        )->input(  value = client->_bind_edit( mv_tabname ) description = `Table` submit = client->_event( `UPDATE_TABLE` )
-        )->button( press = client->_event( `UPDATE_TABLE` ) text = `Post`
-        ).
+        )->input(  value       = client->_bind_edit( mv_tabname )
+                   description = `Table`
+                   submit      = client->_event( `UPDATE_TABLE` )
+        )->button( press = client->_event( `UPDATE_TABLE` )
+                   text  = `Load` ).
     vbox->hbox(
-        )->input(  value = client->_bind_edit( ms_layout-layout ) description = `Layout` enabled = abap_false
-        )->button( press = client->_event( `POPUP_LAYOUT` ) text = `Post`
-      ).
+        )->input(  value       = client->_bind_edit( ms_layout-layout )
+                   description = `Layout`
+                   enabled     = abap_false
+        )->button( press = client->_event( `POPUP_LAYOUT` )
+                   text  = `Choose Layout` ).
     IF mv_tabname IS NOT INITIAL.
       mo_multiselect->set_output( client = client view = vbox ).
     ENDIF.
@@ -100,21 +105,12 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
     mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mv_tabname ).
     mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
-                       val       = mv_tabname
-                      s_variant =  VALUE #( handle01 = 'ZSE16' handle02 = mv_tabname )
-             ).
-
-*    mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-*                                          data     = mr_table
-*                                          handle01 = 'ZSE16'
-*                                          handle02 = mv_tabname ).
-
-
+                         val       = mv_tabname
+                         s_variant = VALUE #( handle01 = `ZSE16` handle02 = mv_tabname ) ).
 
     view_display( ).
 
   ENDMETHOD.
-
 
   METHOD on_navigated.
 

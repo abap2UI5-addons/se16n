@@ -28,15 +28,13 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
     DATA(lv_where) = z2ui5_cl_util=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
     CLEAR mr_table->*.
     TRY.
-
         SELECT FROM (mo_prev->mv_tabname)
          FIELDS
            *
           WHERE (lv_where)
          INTO CORRESPONDING FIELDS OF TABLE @mr_table->*
          UP TO 100 ROWS.
-
-      CATCH cx_root INTO DATA(x).
+      CATCH cx_root.
     ENDTRY.
 
   ENDMETHOD.
@@ -49,7 +47,7 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
       WHEN `BUTTON_START`.
         set_data( ).
         view_display( ).
-      WHEN 'BACK'.
+      WHEN `BACK`.
         client->nav_app_leave( ).
       WHEN OTHERS.
         z2ui5_cl_layo_pop=>on_event_layout( client = client
@@ -64,10 +62,10 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
     DATA(page) = view->shell( )->page(
                      id             = `page_main`
-                     title          = |abap2UI5 - SE16-CLOUD -{ mo_prev->mv_tabname }|
-                     navbuttonpress = client->_event( 'BACK' )
+                     title          = |abap2UI5 - SE16 CLOUD - { mo_prev->mv_tabname }|
+                     navbuttonpress = client->_event( `BACK` )
                      floatingfooter = abap_true
-                     shownavbutton  = xsdbool( client->get( )-s_draft-id_prev_app_stack IS NOT INITIAL ) ).
+                     shownavbutton  = client->check_app_prev_stack( ) ).
 
     z2ui5_cl_layo_xml_builder=>xml_build_table( i_data   = mr_table
                                                 i_xml    = page
@@ -110,10 +108,10 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
         mo_layout = app->mo_layout.
 
         IF app->mv_rerender = abap_true.
-          " subcolumns need rerendering to work ..
+          " subcolumns need rerendering to work
           view_display( ).
         ELSE.
-          "  for all other changes in Layout View Model Update is enough.
+          " for all other layout changes a view model update is enough
           client->view_model_update( ).
         ENDIF.
       CATCH cx_root.
@@ -129,19 +127,12 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
     IF mo_layout IS NOT BOUND.
 
-      IF mo_prev->ms_layout-guid IS INITIAL.
+      mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
+                                                  data     = mr_table
+                                                  handle01 = `ZSE16`
+                                                  handle02 = mo_prev->mv_tabname ).
 
-        mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                                    data     = mr_table
-                                                    handle01 = 'ZSE16'
-                                                    handle02 = mo_prev->mv_tabname ).
-      ELSE.
-
-        mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                                    data     = mr_table
-                                                    handle01 = 'ZSE16'
-                                                    handle02 = mo_prev->mv_tabname ).
-
+      IF mo_prev->ms_layout-guid IS NOT INITIAL.
         mo_layout = z2ui5_cl_layo_manager=>factory_by_guid( layout_guid = mo_prev->ms_layout-guid
                                                             t_comps     = mo_layout->ms_layout-t_layout ).
       ENDIF.
