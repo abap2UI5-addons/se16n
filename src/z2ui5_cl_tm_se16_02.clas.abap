@@ -127,19 +127,12 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
     IF mo_layout IS NOT BOUND.
 
-      IF mo_prev->ms_layout-guid IS INITIAL.
+      mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
+                                                  data     = mr_table
+                                                  handle01 = `ZSE16`
+                                                  handle02 = mo_prev->mv_tabname ).
 
-        mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                                    data     = mr_table
-                                                    handle01 = `ZSE16`
-                                                    handle02 = mo_prev->mv_tabname ).
-      ELSE.
-
-        mo_layout = z2ui5_cl_layo_manager=>factory( control  = z2ui5_cl_layo_manager=>m_table
-                                                    data     = mr_table
-                                                    handle01 = `ZSE16`
-                                                    handle02 = mo_prev->mv_tabname ).
-
+      IF mo_prev->ms_layout-guid IS NOT INITIAL.
         mo_layout = z2ui5_cl_layo_manager=>factory_by_guid( layout_guid = mo_prev->ms_layout-guid
                                                             t_comps     = mo_layout->ms_layout-t_layout ).
       ENDIF.

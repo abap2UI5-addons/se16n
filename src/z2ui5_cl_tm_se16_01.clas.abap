@@ -6,7 +6,8 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
     DATA mv_tabname     TYPE string.
     DATA mr_table       TYPE REF TO data.
     DATA mo_multiselect TYPE REF TO z2ui5_cl_sel_multisel.
-    DATA ms_layout TYPE z2ui5_t_11.
+    DATA ms_layout      TYPE z2ui5_t_11.
+
     METHODS on_navigated.
 
   PROTECTED SECTION.
@@ -54,13 +55,17 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
     DATA(vbox) = page->vbox( ).
 
     vbox->hbox(
-        )->input(  value = client->_bind_edit( mv_tabname ) description = `Table` submit = client->_event( `UPDATE_TABLE` )
-        )->button( press = client->_event( `UPDATE_TABLE` ) text = `Load`
-        ).
+        )->input(  value       = client->_bind_edit( mv_tabname )
+                   description = `Table`
+                   submit      = client->_event( `UPDATE_TABLE` )
+        )->button( press = client->_event( `UPDATE_TABLE` )
+                   text  = `Load` ).
     vbox->hbox(
-        )->input(  value = client->_bind_edit( ms_layout-layout ) description = `Layout` enabled = abap_false
-        )->button( press = client->_event( `POPUP_LAYOUT` ) text = `Choose Layout`
-        ).
+        )->input(  value       = client->_bind_edit( ms_layout-layout )
+                   description = `Layout`
+                   enabled     = abap_false
+        )->button( press = client->_event( `POPUP_LAYOUT` )
+                   text  = `Choose Layout` ).
     IF mv_tabname IS NOT INITIAL.
       mo_multiselect->set_output( client = client view = vbox ).
     ENDIF.
@@ -106,7 +111,6 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
     view_display( ).
 
   ENDMETHOD.
-
 
   METHOD on_navigated.
 
