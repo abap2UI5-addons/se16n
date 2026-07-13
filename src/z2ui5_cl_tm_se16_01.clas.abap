@@ -122,6 +122,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
           FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
           ASSIGN lo_layout-row->* TO <layout>.
           ms_layout = <layout>.
+          view_display( ).
         ENDIF.
         RETURN.
       CATCH cx_root.
