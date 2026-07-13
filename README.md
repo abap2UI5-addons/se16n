@@ -8,6 +8,7 @@
 [![renaming](https://github.com/abap2UI5-addons/se16n/actions/workflows/rename_test.yaml/badge.svg)](https://github.com/abap2UI5-addons/se16n/actions/workflows/rename_test.yaml)
 
 # se16n
+Browse, filter and edit table content in your browser – the classic SE16N, as an abap2UI5 app.
 
 #### Key Features
 * SE16N transaction in your browser

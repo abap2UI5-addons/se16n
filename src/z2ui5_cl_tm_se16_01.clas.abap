@@ -75,7 +75,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
                    type  = `Emphasized`
                    press = client->_event( `GO` ) ).
 
-    client->view_display( view ).
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 

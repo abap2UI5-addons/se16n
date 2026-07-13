@@ -39,7 +39,7 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
          UP TO @lc_max_rows ROWS.
 
         ASSIGN mr_table->* TO <tab>.
-        IF sy-subrc = 0 AND lines( <tab> ) >= lc_max_rows.
+        IF lines( <tab> ) >= lc_max_rows.
           client->message_toast_display( |Only the first { lc_max_rows } rows are shown| ).
         ENDIF.
 
