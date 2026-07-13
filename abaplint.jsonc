@@ -15,12 +15,12 @@
     },
     {
       "url": "https://github.com/abap2UI5-addons/layout-management",
-      "folder": "/src",
+      "folder": "/layout-management",
       "files": "/src/**/*.*"
     },
     {
       "url": "https://github.com/abap2UI5-addons/selection-screen",
-      "folder": "/src",
+      "folder": "/selection-screen",
       "files": "/src/**/*.*"
     }
   ],
