@@ -103,7 +103,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
       mv_tabname = `z2ui5_t_15`.
     ENDIF.
 
-    mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mv_tabname ).
+    mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mv_tabname ).
     mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
                          val       = mv_tabname
                          s_variant = VALUE #( handle01 = `ZSE16` handle02 = mv_tabname ) ).
