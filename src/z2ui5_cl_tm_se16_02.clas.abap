@@ -25,6 +25,9 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
   METHOD set_data.
 
+    CONSTANTS lc_max_rows TYPE i VALUE 100.
+    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+
     DATA(lv_where) = z2ui5_cl_se16_context=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
     CLEAR mr_table->*.
     TRY.
@@ -33,8 +36,15 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
            *
           WHERE (lv_where)
          INTO CORRESPONDING FIELDS OF TABLE @mr_table->*
-         UP TO 100 ROWS.
-      CATCH cx_root.
+         UP TO @lc_max_rows ROWS.
+
+        ASSIGN mr_table->* TO <tab>.
+        IF sy-subrc = 0 AND lines( <tab> ) >= lc_max_rows.
+          client->message_toast_display( |Only the first { lc_max_rows } rows are shown| ).
+        ENDIF.
+
+      CATCH cx_root INTO DATA(lx_error).
+        client->message_toast_display( |Could not read the table: { lx_error->get_text( ) }| ).
     ENDTRY.
 
   ENDMETHOD.
