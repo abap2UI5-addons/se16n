@@ -25,7 +25,10 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
   METHOD set_data.
 
-    DATA(lv_where) = z2ui5_cl_util=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
+    CONSTANTS lc_max_rows TYPE i VALUE 100.
+    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+
+    DATA(lv_where) = z2ui5_cl_se16_context=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
     CLEAR mr_table->*.
     TRY.
         SELECT FROM (mo_prev->mv_tabname)
@@ -33,8 +36,15 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
            *
           WHERE (lv_where)
          INTO CORRESPONDING FIELDS OF TABLE @mr_table->*
-         UP TO 100 ROWS.
-      CATCH cx_root.
+         UP TO @lc_max_rows ROWS.
+
+        ASSIGN mr_table->* TO <tab>.
+        IF lines( <tab> ) >= lc_max_rows.
+          client->message_toast_display( |Only the first { lc_max_rows } rows are shown| ).
+        ENDIF.
+
+      CATCH cx_root INTO DATA(lx_error).
+        client->message_toast_display( |Could not read the table: { lx_error->get_text( ) }| ).
     ENDTRY.
 
   ENDMETHOD.
@@ -122,7 +132,7 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
   METHOD on_init.
 
     mo_prev = CAST #( client->get_app_prev( ) ).
-    mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mo_prev->mv_tabname ).
+    mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mo_prev->mv_tabname ).
     set_data( ).
 
     IF mo_layout IS NOT BOUND.

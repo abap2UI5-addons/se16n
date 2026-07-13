@@ -75,7 +75,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
                    type  = `Emphasized`
                    press = client->_event( `GO` ) ).
 
-    client->view_display( view ).
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
@@ -103,7 +103,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
       mv_tabname = `z2ui5_t_15`.
     ENDIF.
 
-    mr_table = z2ui5_cl_util=>rtti_create_tab_by_name( mv_tabname ).
+    mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mv_tabname ).
     mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
                          val       = mv_tabname
                          s_variant = VALUE #( handle01 = `ZSE16` handle02 = mv_tabname ) ).
@@ -122,6 +122,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
           FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
           ASSIGN lo_layout-row->* TO <layout>.
           ms_layout = <layout>.
+          view_display( ).
         ENDIF.
         RETURN.
       CATCH cx_root.

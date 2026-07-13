@@ -15,12 +15,12 @@
     },
     {
       "url": "https://github.com/abap2UI5-addons/layout-management",
-      "folder": "/src",
+      "folder": "/layout-management",
       "files": "/src/**/*.*"
     },
     {
       "url": "https://github.com/abap2UI5-addons/selection-screen",
-      "folder": "/src",
+      "folder": "/selection-screen",
       "files": "/src/**/*.*"
     }
   ],
@@ -42,6 +42,8 @@
     "superclass_final": true,
     "unknown_types": true,
     "xml_consistency": true,
+    "exporting": true,
+    "omit_parameter_name": true,
     "prefix_is_current_class": true
   }
 }
