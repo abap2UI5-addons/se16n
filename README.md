@@ -13,6 +13,9 @@
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * SAP NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 
+#### Security
+This is a developer tool. It reads the contents of any table the user names, without an authorization check of its own — access is therefore only bounded by whatever restrictions exist on the underlying handler/service. Before using it beyond a development system, add your own authorization checks (e.g. `AUTHORITY-CHECK` on `S_TABU_DIS`/`S_TABU_NAM`) and restrict who may run the app.
+
 #### Dependencies
 * [abap2UI5](https://github.com/abap2UI5/abap2UI5)
 * [layout-management](https://github.com/abap2UI5-addons/layout-management)
