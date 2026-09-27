@@ -68,23 +68,25 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( 
-                     )->ele( n = `View` ns = `mvc` 
-                     )->a( n = `xmlns` v = `sap.m` 
-                     )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc` 
-                     )->a( n = `xmlns:core` v = `sap.ui.core` 
-                     )->a( n = `xmlns:form` v = `sap.ui.layout.form` 
-                     )->a( n = `xmlns:mchart` v = `sap.suite.ui.microchart` 
-                     )->a( n = `xmlns:si` v = `sap.suite.ui.commons.statusindicator` 
-                     )->a( n = `displayBlock` v = `true` 
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+                     )->ele( n = `View` ns = `mvc`
+                     )->a( n = `xmlns` v = `sap.m`
+                     )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
+                     " abap2ui5lint-disable unused-namespace-declaration -- z2ui5_cl_layo_xml_builder writes controls with these prefixes into this view
+                     )->a( n = `xmlns:core` v = `sap.ui.core`
+                     )->a( n = `xmlns:form` v = `sap.ui.layout.form`
+                     )->a( n = `xmlns:mchart` v = `sap.suite.ui.microchart`
+                     )->a( n = `xmlns:si` v = `sap.suite.ui.commons.statusindicator`
+                     " abap2ui5lint-enable unused-namespace-declaration
+                     )->a( n = `displayBlock` v = `true`
                      )->a( n = `height` v = `100%` ).
 
-    DATA(page) = view->ele( `Shell` 
-                     )->ele( `Page` 
-                     )->a( n = `id` v = `page_main` 
-                     )->a( n = `title` v = |abap2UI5 - SE16 CLOUD - { mo_prev->mv_tabname }| 
-                     )->a( n = `navButtonPress` v = client->_event( `BACK` ) 
-                     )->a( n = `floatingFooter` b = abap_true 
+    DATA(page) = view->ele( `Shell`
+                     )->ele( `Page`
+                     )->a( n = `id` v = `page_main`
+                     )->a( n = `title` t = |abap2UI5 - SE16 CLOUD - { mo_prev->mv_tabname }|
+                     )->a( n = `navButtonPress` v = client->_event( `BACK` )
+                     )->a( n = `floatingFooter` b = abap_true
                      )->a( n = `showNavButton` b = client->check_app_prev_stack( ) ).
 
     z2ui5_cl_layo_xml_builder=>xml_build_table( i_data   = mr_table
@@ -92,14 +94,14 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
                                                 i_client = client
                                                 i_layout = mo_layout ).
 
-    page->ele( `footer` 
-        )->ele( `OverflowToolbar` 
-        )->tag( `Button` 
-        )->a( n = `text` v = `Back` 
-        )->a( n = `press` v = client->_event( `BACK` ) 
-        )->tag( `ToolbarSpacer` 
-        )->tag( `Button` 
-        )->a( n = `text` v = `Refresh` 
+    page->ele( `footer`
+        )->ele( `OverflowToolbar`
+        )->tag( `Button`
+        )->a( n = `text` v = `Back`
+        )->a( n = `press` v = client->_event( `BACK` )
+        )->tag( `ToolbarSpacer`
+        )->tag( `Button`
+        )->a( n = `text` v = `Refresh`
         )->a( n = `press` v = client->_event( `REFRESH` ) ).
 
     client->view_display( view->stringify( ) ).
@@ -126,19 +128,23 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
   METHOD on_navigated.
 
-    TRY.
-        DATA(app) = CAST z2ui5_cl_layo_pop( client->get_app( client->get( )-s_draft-id_prev_app ) ).
-        mo_layout = app->mo_layout.
+    " only the layout popup hands back something to apply - asked with IS
+    " INSTANCE OF instead of a CAST whose failure an empty CATCH swallowed
+    DATA(lo_prev) = client->get_app( client->get( )-s_draft-id_prev_app ).
+    IF lo_prev IS NOT INSTANCE OF z2ui5_cl_layo_pop.
+      RETURN.
+    ENDIF.
 
-        IF app->mv_rerender = abap_true.
-          " subcolumns need rerendering to work
-          view_display( ).
-        ELSE.
-          " for all other layout changes a view model update is enough
-          client->view_model_update( ).
-        ENDIF.
-      CATCH cx_root.
-    ENDTRY.
+    DATA(app) = CAST z2ui5_cl_layo_pop( lo_prev ).
+    mo_layout = app->mo_layout.
+
+    IF app->mv_rerender = abap_true.
+      " subcolumns need rerendering to work
+      view_display( ).
+    ELSE.
+      " for all other layout changes a view model update is enough
+      client->view_model_update( ).
+    ENDIF.
 
   ENDMETHOD.
 
