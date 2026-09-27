@@ -47,46 +47,45 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory( 
-                     )->ele( n = `View` ns = `mvc` 
-                     )->a( n = `xmlns` v = `sap.m` 
-                     )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc` 
-                     )->a( n = `xmlns:core` v = `sap.ui.core` 
-                     )->a( n = `displayBlock` v = `true` 
+    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+                     )->ele( n = `View` ns = `mvc`
+                     )->a( n = `xmlns` v = `sap.m`
+                     )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
+                     )->a( n = `displayBlock` v = `true`
                      )->a( n = `height` v = `100%` ).
-    DATA(page) = view->ele( `Shell` 
-                     )->ele( `Page` 
-                     )->a( n = `title` v = `abap2UI5 - SE16 CLOUD - Start` 
-                     )->a( n = `navButtonPress` v = client->_event( `BACK` ) 
-                     )->a( n = `showNavButton` b = client->check_app_prev_stack( ) 
+    DATA(page) = view->ele( `Shell`
+                     )->ele( `Page`
+                     )->a( n = `title` v = `abap2UI5 - SE16 CLOUD - Start`
+                     )->a( n = `navButtonPress` v = client->_event( `BACK` )
+                     )->a( n = `showNavButton` b = client->check_app_prev_stack( )
                      )->a( n = `floatingFooter` b = abap_true ).
     DATA(vbox) = page->ele( `VBox` ).
 
-    vbox->ele( `HBox` 
-        )->tag( `Input` 
-        )->a( n = `value` v = client->_bind_edit( mv_tabname ) 
-        )->a( n = `description` v = `Table` 
-        )->a( n = `submit` v = client->_event( `UPDATE_TABLE` ) 
-        )->tag( `Button` 
-        )->a( n = `press` v = client->_event( `UPDATE_TABLE` ) 
+    vbox->ele( `HBox`
+        )->tag( `Input`
+        )->a( n = `value` v = client->_bind_edit( mv_tabname )
+        )->a( n = `description` v = `Table`
+        )->a( n = `submit` v = client->_event( `UPDATE_TABLE` )
+        )->tag( `Button`
+        )->a( n = `press` v = client->_event( `UPDATE_TABLE` )
         )->a( n = `text` v = `Load` ).
-    vbox->ele( `HBox` 
-        )->tag( `Input` 
-        )->a( n = `value` v = client->_bind_edit( ms_layout-layout ) 
-        )->a( n = `description` v = `Layout` 
-        )->a( n = `enabled` b = abap_false 
-        )->tag( `Button` 
-        )->a( n = `press` v = client->_event( `POPUP_LAYOUT` ) 
+    vbox->ele( `HBox`
+        )->tag( `Input`
+        )->a( n = `value` v = client->_bind_edit( ms_layout-layout )
+        )->a( n = `description` v = `Layout`
+        )->a( n = `enabled` b = abap_false
+        )->tag( `Button`
+        )->a( n = `press` v = client->_event( `POPUP_LAYOUT` )
         )->a( n = `text` v = `Choose Layout` ).
     IF mv_tabname IS NOT INITIAL.
       mo_multiselect->set_output( client = client view = vbox ).
     ENDIF.
-    page->ele( `footer` 
-        )->ele( `OverflowToolbar` 
-        )->tag( `ToolbarSpacer` 
-        )->tag( `Button` 
-        )->a( n = `text` v = `GO` 
-        )->a( n = `type` v = `Emphasized` 
+    page->ele( `footer`
+        )->ele( `OverflowToolbar`
+        )->tag( `ToolbarSpacer`
+        )->tag( `Button`
+        )->a( n = `text` v = `GO`
+        )->a( n = `type` v = `Emphasized`
         )->a( n = `press` v = client->_event( `GO` ) ).
 
     client->view_display( view->stringify( ) ).
@@ -128,24 +127,24 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
   METHOD on_navigated.
 
-    TRY.
-        DATA(lo_popup) = CAST z2ui5_cl_layo_pop_w_sel( client->get_app_prev( ) ).
-        DATA(lo_layout) = lo_popup->result( ).
+    " which app handed control back decides what to do - asked with IS
+    " INSTANCE OF instead of a CAST whose failure an empty CATCH swallowed,
+    " so an error in the branch that does run reaches the message box in main
+    DATA(lo_prev) = client->get_app_prev( ).
 
-        IF lo_layout-check_confirmed = abap_true.
-          FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
-          ASSIGN lo_layout-row->* TO <layout>.
-          ms_layout = <layout>.
-          view_display( ).
-        ENDIF.
-        RETURN.
-      CATCH cx_root.
-    ENDTRY.
-    TRY.
-        DATA(lo_app) = CAST z2ui5_cl_tm_se16_02( client->get_app_prev( ) ).
+    IF lo_prev IS INSTANCE OF z2ui5_cl_layo_pop_w_sel.
+      DATA(lo_layout) = CAST z2ui5_cl_layo_pop_w_sel( lo_prev )->result( ).
+
+      IF lo_layout-check_confirmed = abap_true.
+        FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
+        ASSIGN lo_layout-row->* TO <layout>.
+        ms_layout = <layout>.
         view_display( ).
-      CATCH cx_root.
-    ENDTRY.
+      ENDIF.
+
+    ELSEIF lo_prev IS INSTANCE OF z2ui5_cl_tm_se16_02.
+      view_display( ).
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
