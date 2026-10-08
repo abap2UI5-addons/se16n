@@ -29,16 +29,16 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE ANY TABLE.
 
     DATA(lv_where) = z2ui5_cl_se16_context=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
-    CLEAR mr_table->*.
+    ASSIGN mr_table->* TO <tab>.
+    CLEAR <tab>.
     TRY.
         SELECT FROM (mo_prev->mv_tabname)
          FIELDS
            *
           WHERE (lv_where)
-         INTO CORRESPONDING FIELDS OF TABLE @mr_table->*
+         INTO CORRESPONDING FIELDS OF TABLE @<tab>
          UP TO @lc_max_rows ROWS.
 
-        ASSIGN mr_table->* TO <tab>.
         IF lines( <tab> ) >= lc_max_rows.
           client->message_toast_display( |Only the first { lc_max_rows } rows are shown| ).
         ENDIF.
