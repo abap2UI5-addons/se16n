@@ -90,19 +90,34 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(lv_field_where) = ``.
+      " select-option semantics: a row matches one of the including ranges
+      " and none of the excluding ones. An excluding range arrives here
+      " already negated (filter_get_sql_cond_by_range), so the includes are
+      " joined with OR and the excludes with AND - OR-ing them too let
+      " every row through that missed a single exclude
+      DATA(lv_include) = ``.
+      DATA(lv_exclude) = ``.
       LOOP AT ls_filter-t_range INTO DATA(ls_range).
         DATA(lv_cond) = filter_get_sql_cond_by_range( fieldname = ls_filter-name
                                                       range     = ls_range ).
         IF lv_cond IS INITIAL.
           CONTINUE.
         ENDIF.
-        IF lv_field_where IS INITIAL.
-          lv_field_where = lv_cond.
+        IF ls_range-sign = `E`.
+          lv_exclude = COND #( WHEN lv_exclude IS INITIAL THEN lv_cond
+                               ELSE |{ lv_exclude } AND { lv_cond }| ).
         ELSE.
-          lv_field_where = |{ lv_field_where } OR { lv_cond }|.
+          lv_include = COND #( WHEN lv_include IS INITIAL THEN lv_cond
+                               ELSE |{ lv_include } OR { lv_cond }| ).
         ENDIF.
       ENDLOOP.
+
+      DATA(lv_field_where) = COND string(
+        WHEN lv_include IS NOT INITIAL AND lv_exclude IS NOT INITIAL
+        THEN |( { lv_include } ) AND { lv_exclude }|
+        WHEN lv_include IS NOT INITIAL
+        THEN lv_include
+        ELSE lv_exclude ).
 
       IF lv_field_where IS INITIAL.
         CONTINUE.
