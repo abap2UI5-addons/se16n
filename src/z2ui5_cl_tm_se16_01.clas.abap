@@ -116,6 +116,12 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
       mv_tabname = `z2ui5_t_15`.
     ENDIF.
 
+    " a layout belongs to the table it was chosen for (handle02) - loading
+    " another table must not carry it over, or GO applies it to the wrong table
+    IF to_upper( ms_layout-handle02 ) <> to_upper( mv_tabname ).
+      CLEAR ms_layout.
+    ENDIF.
+
     mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mv_tabname ).
     mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
                          val       = mv_tabname
