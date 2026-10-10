@@ -54,12 +54,16 @@ with an empty `CATCH` — surface them to the user.
 
 ## Validation
 
-Run `npx abaplint` before considering changes complete (config `abaplint.jsonc`,
-0 issues expected). CI:
+Run `npm run check` before considering changes complete: it runs the same
+abaplint, abap2UI5-linter and rename steps as CI, and all of them must pass.
+CI:
 
-* `ABAP_STANDARD` / `ABAP_CLOUD` — lint against Standard ABAP and ABAP Cloud
-* `renaming` (`rename_test.yaml`) — namespace-rename check
-* `build_rename` — manual workflow that pushes a namespace-renamed branch
+* `abap-standard` / `abap-cloud` — lint against Standard ABAP
+  (`abaplint.jsonc`) and ABAP Cloud (`.github/abaplint/abap_cloud.jsonc`)
+* `check-abap2ui5` — the abap2UI5-linter over the app classes and their
+  views (`abap2ui5lint.jsonc`)
+* `check-rename` — namespace-rename check (`.github/abaplint/rename.json`)
+* `build-rename` — manual workflow that pushes a namespace-renamed branch
   `rename_<name>` for a parallel install
 
 There is no 702 downport: the selection-screen dependency has no `702` branch.
