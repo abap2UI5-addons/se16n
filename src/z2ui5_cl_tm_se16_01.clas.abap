@@ -36,6 +36,10 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
         on_init( ).
 
       WHEN `GO`.
+        IF mo_multiselect IS NOT BOUND.
+          client->message_toast_display( `Load a table first` ).
+          RETURN.
+        ENDIF.
         client->nav_app_call( NEW z2ui5_cl_tm_se16_02( ) ).
 
       WHEN `BACK`.
@@ -77,7 +81,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
         )->tag( `Button`
         )->a( n = `press` v = client->_event( `POPUP_LAYOUT` )
         )->a( n = `text` v = `Choose Layout` ).
-    IF mv_tabname IS NOT INITIAL.
+    IF mo_multiselect IS BOUND.
       mo_multiselect->set_output( client = client view = vbox ).
     ENDIF.
     page->ele( `footer`
@@ -98,7 +102,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
         IF client->check_on_init( ).
           on_init( ).
-        ELSEIF mo_multiselect->main( client ).
+        ELSEIF mo_multiselect IS BOUND AND mo_multiselect->main( client ).
         ELSEIF client->check_on_navigated( ).
           on_navigated( ).
         ELSE.
@@ -112,14 +116,25 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
   METHOD on_init.
 
-    IF mv_tabname IS INITIAL.
-      mv_tabname = `z2ui5_t_15`.
+    " a layout belongs to the table it was chosen for (handle02) - loading
+    " another table must not carry it over, or GO applies it to the wrong table
+    IF to_upper( ms_layout-handle02 ) <> to_upper( mv_tabname ).
+      CLEAR ms_layout.
     ENDIF.
 
-    mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mv_tabname ).
-    mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
-                         val       = mv_tabname
-                         s_variant = VALUE #( handle01 = `ZSE16` handle02 = mv_tabname ) ).
+    " no table yet, or one that does not exist: show the screen without
+    " select-options, so the user can enter a name - GO asks for one first
+    CLEAR: mr_table, mo_multiselect.
+    IF mv_tabname IS NOT INITIAL.
+      mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mv_tabname ).
+      IF mr_table IS BOUND.
+        mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
+                             val       = mv_tabname
+                             s_variant = VALUE #( handle01 = `ZSE16` handle02 = mv_tabname ) ).
+      ELSE.
+        client->message_toast_display( |Table { mv_tabname } not found| ).
+      ENDIF.
+    ENDIF.
 
     view_display( ).
 
