@@ -35,6 +35,7 @@ CLASS z2ui5_cl_se16_context DEFINITION
 
     "! Vendored copy of the abap2UI5 utility methods this app uses, so the
     "! app carries its own context instead of depending on z2ui5_cl_util.
+    "! Returns an unbound reference when no type of that name exists.
     CLASS-METHODS rtti_create_tab_by_name
       IMPORTING
         val           TYPE clike
@@ -64,8 +65,18 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
   METHOD rtti_create_tab_by_name.
 
-    DATA(struct_desc) = cl_abap_structdescr=>describe_by_name( val ).
-    DATA(data_desc) = CAST cl_abap_datadescr( struct_desc ).
+    " type_not_found is a classic exception: called functionally, an unknown
+    " name ends in a short dump no CATCH stops - so it is handled here and
+    " the caller gets an unbound reference instead
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = val
+                                         RECEIVING  p_descr_ref    = lo_type
+                                         EXCEPTIONS type_not_found = 1
+                                                    OTHERS         = 2 ).
+    IF sy-subrc <> 0 OR lo_type IS NOT INSTANCE OF cl_abap_datadescr.
+      RETURN.
+    ENDIF.
+    DATA(data_desc) = CAST cl_abap_datadescr( lo_type ).
     DATA(gr_dyntable_typ) = cl_abap_tabledescr=>create( data_desc ).
     CREATE DATA result TYPE HANDLE gr_dyntable_typ.
 
@@ -79,19 +90,34 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(lv_field_where) = ``.
+      " select-option semantics: a row matches one of the including ranges
+      " and none of the excluding ones. An excluding range arrives here
+      " already negated (filter_get_sql_cond_by_range), so the includes are
+      " joined with OR and the excludes with AND - OR-ing them too let
+      " every row through that missed a single exclude
+      DATA(lv_include) = ``.
+      DATA(lv_exclude) = ``.
       LOOP AT ls_filter-t_range INTO DATA(ls_range).
         DATA(lv_cond) = filter_get_sql_cond_by_range( fieldname = ls_filter-name
                                                       range     = ls_range ).
         IF lv_cond IS INITIAL.
           CONTINUE.
         ENDIF.
-        IF lv_field_where IS INITIAL.
-          lv_field_where = lv_cond.
+        IF ls_range-sign = `E`.
+          lv_exclude = COND #( WHEN lv_exclude IS INITIAL THEN lv_cond
+                               ELSE |{ lv_exclude } AND { lv_cond }| ).
         ELSE.
-          lv_field_where = |{ lv_field_where } OR { lv_cond }|.
+          lv_include = COND #( WHEN lv_include IS INITIAL THEN lv_cond
+                               ELSE |{ lv_include } OR { lv_cond }| ).
         ENDIF.
       ENDLOOP.
+
+      DATA(lv_field_where) = COND string(
+        WHEN lv_include IS NOT INITIAL AND lv_exclude IS NOT INITIAL
+        THEN |( { lv_include } ) AND { lv_exclude }|
+        WHEN lv_include IS NOT INITIAL
+        THEN lv_include
+        ELSE lv_exclude ).
 
       IF lv_field_where IS INITIAL.
         CONTINUE.
