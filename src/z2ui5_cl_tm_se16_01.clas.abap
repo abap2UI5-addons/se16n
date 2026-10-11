@@ -12,6 +12,9 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
+    " the table the select-options were built for - mv_tabname is the input
+    " field and may have been changed since
+    DATA mv_tabname_loaded TYPE string.
 
     METHODS on_event.
     METHODS view_display.
@@ -38,6 +41,13 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
       WHEN `GO`.
         IF mo_multiselect IS NOT BOUND.
           client->message_toast_display( `Load a table first` ).
+          RETURN.
+        ENDIF.
+        " another name typed in without Load: the select-options and the
+        " layout belong to the old table, and a name that does not exist
+        " ended in a short dump on the result screen - load it first
+        IF mv_tabname <> mv_tabname_loaded.
+          on_init( ).
           RETURN.
         ENDIF.
         client->nav_app_call( NEW z2ui5_cl_tm_se16_02( ) ).
@@ -125,6 +135,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
     " no table yet, or one that does not exist: show the screen without
     " select-options, so the user can enter a name - GO asks for one first
     CLEAR: mr_table, mo_multiselect.
+    mv_tabname_loaded = mv_tabname.
     IF mv_tabname IS NOT INITIAL.
       mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mv_tabname ).
       IF mr_table IS BOUND.

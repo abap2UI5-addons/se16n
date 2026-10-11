@@ -90,6 +90,13 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
+      " the select-options are bound to the view, so the name comes back from
+      " the browser - only a plain field name goes into the WHERE clause, never
+      " a condition or a subquery on another table
+      IF NOT matches( val = ls_filter-name pcre = `[A-Za-z0-9_/]+` ).
+        CONTINUE.
+      ENDIF.
+
       " select-option semantics: a row matches one of the including ranges
       " and none of the excluding ones. An excluding range arrives here
       " already negated (filter_get_sql_cond_by_range), so the includes are
@@ -160,7 +167,29 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
       ENDCASE.
     ENDIF.
 
-    DATA(lv_like) = ``.
+    " CP: only * and + are wildcards - a _ or % the user typed is a plain
+    " character, as in an IN range, so it is escaped
+    DATA(lv_like) = replace( val  = lv_low
+                             sub  = `#`
+                             with = `##`
+                             occ  = 0 ).
+    lv_like = replace( val  = lv_like
+                       sub  = `%`
+                       with = `#%`
+                       occ  = 0 ).
+    lv_like = replace( val  = lv_like
+                       sub  = `_`
+                       with = `#_`
+                       occ  = 0 ).
+    lv_like = replace( val  = lv_like
+                       sub  = `*`
+                       with = `%`
+                       occ  = 0 ).
+    lv_like = replace( val  = lv_like
+                       sub  = `+`
+                       with = `_`
+                       occ  = 0 ).
+
     CASE lv_option.
       WHEN `EQ`.
         result = |{ fieldname } = '{ lv_low }'|.
@@ -175,15 +204,9 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
       WHEN `GE`.
         result = |{ fieldname } >= '{ lv_low }'|.
       WHEN `CP`.
-        lv_like = lv_low.
-        REPLACE ALL OCCURRENCES OF `*` IN lv_like WITH `%`.
-        REPLACE ALL OCCURRENCES OF `+` IN lv_like WITH `_`.
-        result = |{ fieldname } LIKE '{ lv_like }'|.
+        result = |{ fieldname } LIKE '{ lv_like }' ESCAPE '#'|.
       WHEN `NP`.
-        lv_like = lv_low.
-        REPLACE ALL OCCURRENCES OF `*` IN lv_like WITH `%`.
-        REPLACE ALL OCCURRENCES OF `+` IN lv_like WITH `_`.
-        result = |{ fieldname } NOT LIKE '{ lv_like }'|.
+        result = |{ fieldname } NOT LIKE '{ lv_like }' ESCAPE '#'|.
       WHEN `BT`.
         result = |{ fieldname } BETWEEN '{ lv_low }' AND '{ lv_high }'|.
       WHEN `NB`.
