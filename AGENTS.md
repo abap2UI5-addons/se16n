@@ -17,18 +17,29 @@ documentation must be in English.
 | Package | Content |
 |---|---|
 | `src/z2ui5_cl_tm_se16_01` / `_02` | Selection screen and data view |
-| `src/z2ui5_cl_se16_context` | Vendored utility copy — **see below** |
+| `src/z2ui5_cl_se16_context`, `src/z2ui5_cx_se16_error` | Vendored utility copies — **see below** |
 
 ## The Utility Copy Principle
 
-`z2ui5_cl_se16_context` is a **trimmed, renamed copy** of the abap2UI5 utility
-class (`z2ui5_cl_util` in the core), carrying only the two methods this addon
-uses (`rtti_create_tab_by_name`, `filter_get_sql_where`) plus the private helper
-and filter types those need. The app calls `z2ui5_cl_se16_context=>…`, never
-`z2ui5_cl_util=>…` directly. This keeps the install dependency-free (abapGit has
-no dependency management). The core and the other addons use the same pattern.
-When a new utility method is needed, copy it from the core utility class (with
-its private helpers) into the context copy rather than adding a dependency.
+`z2ui5_cl_se16_context` is a **renamed copy** of `zabaputil_cl_util_context`
+from the [abap-util](https://github.com/abap-util/abap-util) **master catalog**,
+**trimmed to the methods this addon uses** (`rtti_create_tab_by_name`,
+`filter_get_sql_where`) plus the private helpers, types and constants those
+need. `z2ui5_cx_se16_error` is the master's `zabaputil_cx_util_error`, renamed
+and copied as-is. This keeps the install dependency-free (abapGit has no
+dependency management).
+
+1. **Nothing from the core's frozen `src/99/01`.** `z2ui5_cl_util*` and
+   `z2ui5_cx_util_error` are kept in abap2UI5 for compatibility only; the app
+   calls `z2ui5_cl_se16_context=>…`, every utility exception is
+   `z2ui5_cx_se16_error`.
+2. **Method-level trimming** applies to the context class only, and keeps
+   every helper a kept method needs.
+3. **New methods are added locally.** If the method already exists in
+   abap-util, copy it from there (with its helpers) instead of re-implementing
+   it. Do not add a dependency on another project's copy.
+4. **Periodic AI sync-back:** abap-util compares all consumers every few weeks
+   and merges what was added or fixed here back into the master.
 
 ## Dependencies
 

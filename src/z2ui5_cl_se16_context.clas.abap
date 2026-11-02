@@ -4,6 +4,53 @@ CLASS z2ui5_cl_se16_context DEFINITION
 
   PUBLIC SECTION.
 
+    " Environment-abstracted character/format constants. Callers must read
+    " these from z2ui5_cl_util instead of referencing cl_abap_char_utilities /
+    " cl_abap_format directly, so the dependency on those SAP standard classes
+    " lives in exactly one place (this class' class_constructor) and can be
+    " ported once for non-ABAP runtimes (e.g. transpiled JS).
+    CLASS-DATA cv_char_util_newline        TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_char_util_cr_lf          TYPE c LENGTH 2 READ-ONLY.
+
+    CLASS-DATA cv_char_util_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_char_util_charsize       TYPE i          READ-ONLY.
+
+    CLASS-DATA cv_format_e_xml_attr             TYPE i          READ-ONLY.
+
+    " RTTI type-kind / kind / visibility constants, so callers can branch on
+    " stored type_kind/kind fields without referencing cl_abap_typedescr /
+    " cl_abap_objectdescr directly.
+    CLASS-DATA cv_typedescr_typekind_table   TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_dref    TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_oref    TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_struct1 TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_struct2 TYPE c LENGTH 1 READ-ONLY.
+
+    " the three elementary kinds whose JSON form is not their ABAP form
+    " (ISO date/time strings, ISO timestamps) - what a caller converting a
+    " scalar between the two representations has to branch on
+    CLASS-DATA cv_typedescr_typekind_date    TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_time    TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_typekind_packed  TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_kind_struct      TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_kind_elem        TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_typedescr_kind_ref         TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-DATA cv_objectdescr_public         TYPE c LENGTH 1 READ-ONLY.
+
+    CLASS-METHODS class_constructor.
+
     TYPES:
       BEGIN OF ty_s_token,
         key      TYPE string,
@@ -12,6 +59,7 @@ CLASS z2ui5_cl_se16_context DEFINITION
         selkz    TYPE abap_bool,
         editable TYPE abap_bool,
       END OF ty_s_token.
+
     TYPES ty_t_token TYPE STANDARD TABLE OF ty_s_token WITH EMPTY KEY.
 
     TYPES:
@@ -21,6 +69,7 @@ CLASS z2ui5_cl_se16_context DEFINITION
         low    TYPE string,
         high   TYPE string,
       END OF ty_s_range.
+
     TYPES ty_t_range TYPE STANDARD TABLE OF ty_s_range WITH EMPTY KEY.
 
     TYPES:
@@ -31,16 +80,8 @@ CLASS z2ui5_cl_se16_context DEFINITION
         t_token_added   TYPE ty_t_token,
         t_token_removed TYPE ty_t_token,
       END OF ty_s_filter_multi.
-    TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_filter_multi WITH EMPTY KEY.
 
-    "! Vendored copy of the abap2UI5 utility methods this app uses, so the
-    "! app carries its own context instead of depending on z2ui5_cl_util.
-    "! Returns an unbound reference when no type of that name exists.
-    CLASS-METHODS rtti_create_tab_by_name
-      IMPORTING
-        val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE REF TO data.
+    TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_filter_multi WITH EMPTY KEY.
 
     CLASS-METHODS filter_get_sql_where
       IMPORTING
@@ -48,7 +89,19 @@ CLASS z2ui5_cl_se16_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS rtti_create_tab_by_name
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+    CLASS-METHODS uuid_get_c32
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
+
+  PRIVATE SECTION.
 
     CLASS-METHODS filter_get_sql_cond_by_range
       IMPORTING
@@ -57,28 +110,34 @@ CLASS z2ui5_cl_se16_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-  PRIVATE SECTION.
+    " Guards the cycle z2ui5_cx_se16_error=>constructor -> uuid_get_c32 ->
+    " RAISE z2ui5_cx_se16_error -> ... see uuid_get_c32.
+    CLASS-DATA gv_uuid_failed TYPE abap_bool.
 ENDCLASS.
 
 
 CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
-  METHOD rtti_create_tab_by_name.
+  METHOD class_constructor.
 
-    " type_not_found is a classic exception: called functionally, an unknown
-    " name ends in a short dump no CATCH stops - so it is handled here and
-    " the caller gets an unbound reference instead
-    DATA lo_type TYPE REF TO cl_abap_typedescr.
-    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = val
-                                         RECEIVING  p_descr_ref    = lo_type
-                                         EXCEPTIONS type_not_found = 1
-                                                    OTHERS         = 2 ).
-    IF sy-subrc <> 0 OR lo_type IS NOT INSTANCE OF cl_abap_datadescr.
-      RETURN.
-    ENDIF.
-    DATA(data_desc) = CAST cl_abap_datadescr( lo_type ).
-    DATA(gr_dyntable_typ) = cl_abap_tabledescr=>create( data_desc ).
-    CREATE DATA result TYPE HANDLE gr_dyntable_typ.
+    cv_char_util_newline        = cl_abap_char_utilities=>newline.
+    cv_char_util_cr_lf          = cl_abap_char_utilities=>cr_lf.
+    cv_char_util_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
+    cv_char_util_charsize       = cl_abap_char_utilities=>charsize.
+    cv_format_e_xml_attr        = cl_abap_format=>e_xml_attr.
+
+    cv_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
+    cv_typedescr_typekind_dref       = cl_abap_typedescr=>typekind_dref.
+    cv_typedescr_typekind_oref       = cl_abap_typedescr=>typekind_oref.
+    cv_typedescr_typekind_struct1    = cl_abap_typedescr=>typekind_struct1.
+    cv_typedescr_typekind_struct2    = cl_abap_typedescr=>typekind_struct2.
+    cv_typedescr_typekind_date       = cl_abap_typedescr=>typekind_date.
+    cv_typedescr_typekind_time       = cl_abap_typedescr=>typekind_time.
+    cv_typedescr_typekind_packed     = cl_abap_typedescr=>typekind_packed.
+    cv_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
+    cv_typedescr_kind_elem           = cl_abap_typedescr=>kind_elem.
+    cv_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
+    cv_objectdescr_public            = cl_abap_objectdescr=>public.
 
   ENDMETHOD.
 
@@ -93,7 +152,10 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
       " the select-options are bound to the view, so the name comes back from
       " the browser - only a plain field name goes into the WHERE clause, never
       " a condition or a subquery on another table
-      IF NOT matches( val = ls_filter-name pcre = `[A-Za-z0-9_/]+` ).
+      " a character set instead of a regex: PCRE is not on 7.02, POSIX not
+      " on ABAP Cloud
+      IF ls_filter-name IS INITIAL
+          OR ls_filter-name CN `ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_/`.
         CONTINUE.
       ENDIF.
 
@@ -215,4 +277,75 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD rtti_create_tab_by_name.
+
+    " type_not_found is a classic exception: called functionally, an unknown
+    " name ends in a short dump no CATCH stops - so it is handled here and
+    " the caller gets an unbound reference instead
+    DATA lo_type TYPE REF TO cl_abap_typedescr.
+    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = val
+                                         RECEIVING  p_descr_ref    = lo_type
+                                         EXCEPTIONS type_not_found = 1
+                                                    OTHERS         = 2 ).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    " a class or an interface of that name is no data type - the kind, not
+    " IS INSTANCE OF, which the 7.02 downport cannot express
+    IF lo_type->kind = cl_abap_typedescr=>kind_class OR lo_type->kind = cl_abap_typedescr=>kind_intf.
+      RETURN.
+    ENDIF.
+    DATA(data_desc) = CAST cl_abap_datadescr( lo_type ).
+    DATA(gr_dyntable_typ) = cl_abap_tabledescr=>create( data_desc ).
+    CREATE DATA result TYPE HANDLE gr_dyntable_typ.
+
+  ENDMETHOD.
+
+  METHOD uuid_get_c32.
+    DATA lv_uuid      TYPE c LENGTH 32.
+    DATA lv_classname TYPE string.
+    DATA lv_fm        TYPE string.
+
+    TRY.
+
+        TRY.
+
+            lv_classname = `CL_SYSTEM_UUID`.
+            CALL METHOD (lv_classname)=>if_system_uuid_static~create_uuid_c32
+              RECEIVING
+                uuid = lv_uuid.
+
+          CATCH cx_root.
+
+            lv_fm = `GUID_CREATE`.
+            CALL FUNCTION lv_fm
+              IMPORTING
+                ev_guid_32 = lv_uuid.
+
+        ENDTRY.
+
+        result = lv_uuid.
+
+      CATCH cx_root INTO DATA(lx_uuid).
+        " both UUID mechanisms failed - raise the framework exception so the
+        " consumer's single top-level catch can turn it into a handled error.
+        " ASSERT would raise the uncatchable ASSERTION_FAILED and bypass that
+        " catch (short dump instead of a handled error response).
+        " z2ui5_cx_se16_error=>constructor itself calls uuid_get_c32, so the
+        " raise below re-enters this method. gv_uuid_failed makes that nested
+        " call return an empty UUID instead of raising again (endless recursion
+        " until the stack overflows, which would defeat the handled error above).
+        IF gv_uuid_failed = abap_true.
+          RETURN.
+        ENDIF.
+        gv_uuid_failed = abap_true.
+        TRY.
+            RAISE EXCEPTION TYPE z2ui5_cx_se16_error
+              EXPORTING
+                val = lx_uuid.
+          CLEANUP.
+            CLEAR gv_uuid_failed.
+        ENDTRY.
+    ENDTRY.
+  ENDMETHOD.
 ENDCLASS.
