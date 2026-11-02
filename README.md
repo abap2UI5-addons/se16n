@@ -46,6 +46,8 @@ the result table and its layouts from
 - [abap2UI5-addons/range-filter](https://github.com/abap2UI5-addons/range-filter)
   (formerly selection-screen) - the select-options and their variants
 
+**Renamed (2026-11).** `z2ui5_cl_tm_se16_01`/`_02` are `z2ui5_cl_se16_app_01`/`_02` now - the `tm` segment belongs to table-maintenance. After the pull abapGit lists the old classes as deleted in the repository: delete them, and update `?app_start=` links.
+
 **Steps** - with [abapGit](https://abapgit.org), in this order:
 
 1. [abap2UI5](https://github.com/abap2UI5/abap2UI5)
@@ -53,7 +55,7 @@ the result table and its layouts from
 3. [abap2UI5-addons/range-filter](https://github.com/abap2UI5-addons/range-filter)
 4. this repository - branch `main`, or `702` on NetWeaver 7.02 - 7.40
 
-**Start** - run it like any abap2UI5 app: `?app_start=z2ui5_cl_tm_se16_01`.
+**Start** - run it like any abap2UI5 app: `?app_start=z2ui5_cl_se16_app_01`.
 Before you open it to other users, read [Security](#security).
 
 ## Usage
@@ -68,8 +70,8 @@ Before you open it to other users, read [Security](#security).
 
 | Class | Purpose |
 |---|---|
-| `z2ui5_cl_tm_se16_01` | Start app: table name, selection, layout |
-| `z2ui5_cl_tm_se16_02` | Result list |
+| `z2ui5_cl_se16_app_01` | Start app: table name, selection, layout |
+| `z2ui5_cl_se16_app_02` | Result list |
 | `z2ui5_cl_se16_context` | Vendored copy of the two abap2UI5 utility methods the app uses |
 
 ## Features

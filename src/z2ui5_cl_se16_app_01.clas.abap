@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
+CLASS z2ui5_cl_se16_app_01 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -15,7 +15,7 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
     " the table the select-options were built for - mv_tabname is the input
     " field and may have been changed since
     DATA mv_tabname_loaded TYPE string.
-    " set while z2ui5_cl_tm_se16_02 runs: on_navigated tells by it, not by a
+    " set while z2ui5_cl_se16_app_02 runs: on_navigated tells by it, not by a
     " cast, that the result list returned (no type reference - the two
     " classes would be cyclic)
     DATA mv_check_list_open TYPE abap_bool.
@@ -28,7 +28,7 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
+CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
 
   METHOD on_event.
 
@@ -55,7 +55,7 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
           RETURN.
         ENDIF.
         mv_check_list_open = abap_true.
-        client->nav_app_call( NEW z2ui5_cl_tm_se16_02( ) ).
+        client->nav_app_call( NEW z2ui5_cl_se16_app_02( ) ).
 
       WHEN `BACK`.
         client->nav_app_leave( ).

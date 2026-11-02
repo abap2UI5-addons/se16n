@@ -1,10 +1,10 @@
-CLASS z2ui5_cl_tm_se16_02 DEFINITION PUBLIC.
+CLASS z2ui5_cl_se16_app_02 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
     DATA mo_layout TYPE REF TO z2ui5_cl_layo_manager.
-    DATA mo_prev   TYPE REF TO z2ui5_cl_tm_se16_01.
+    DATA mo_prev   TYPE REF TO z2ui5_cl_se16_app_01.
     DATA mr_table  TYPE REF TO data.
 
   PROTECTED SECTION.
@@ -21,7 +21,7 @@ CLASS z2ui5_cl_tm_se16_02 DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
+CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
 
   METHOD set_data.
 

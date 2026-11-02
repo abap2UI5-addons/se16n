@@ -16,7 +16,7 @@ documentation must be in English.
 
 | Package | Content |
 |---|---|
-| `src/z2ui5_cl_tm_se16_01` / `_02` | Selection screen and data view |
+| `src/z2ui5_cl_se16_app_01` / `_02` | Selection screen and data view |
 | `src/z2ui5_cl_se16_context`, `src/z2ui5_cx_se16_error` | Vendored utility copies — **see below** |
 
 ## The Utility Copy Principle
