@@ -32,12 +32,13 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
     ASSIGN mr_table->* TO <tab>.
     CLEAR <tab>.
     TRY.
-        SELECT FROM (mo_prev->mv_tabname)
-         FIELDS
-           *
+        " ORDER BY keeps UP TO downportable: without it the 702 downport
+        " leaves the statement half rewritten
+        SELECT * FROM (mo_prev->mv_tabname)
           WHERE (lv_where)
-         INTO CORRESPONDING FIELDS OF TABLE @<tab>
-         UP TO @lc_max_rows ROWS.
+          ORDER BY PRIMARY KEY
+          INTO CORRESPONDING FIELDS OF TABLE @<tab>
+          UP TO @lc_max_rows ROWS.
 
         IF lines( <tab> ) >= lc_max_rows.
           client->message_toast_display( |Only the first { lc_max_rows } rows are shown| ).
@@ -128,14 +129,14 @@ CLASS z2ui5_cl_tm_se16_02 IMPLEMENTATION.
 
   METHOD on_navigated.
 
-    " only the layout popup hands back something to apply - asked with IS
-    " INSTANCE OF instead of a CAST whose failure an empty CATCH swallowed
-    DATA(lo_prev) = client->get_app( client->get( )-s_draft-id_prev_app ).
-    IF lo_prev IS NOT INSTANCE OF z2ui5_cl_layo_pop.
-      RETURN.
-    ENDIF.
-
-    DATA(app) = CAST z2ui5_cl_layo_pop( lo_prev ).
+    " only the layout popup hands back something to apply - asked with a cast
+    " (IS INSTANCE OF has no 7.02 downport); the TRY holds only the cast
+    DATA app TYPE REF TO z2ui5_cl_layo_pop.
+    TRY.
+        app ?= client->get_app( client->get( )-s_draft-id_prev_app ).
+      CATCH cx_sy_move_cast_error.
+        RETURN.
+    ENDTRY.
     mo_layout = app->mo_layout.
 
     IF app->mv_rerender = abap_true.

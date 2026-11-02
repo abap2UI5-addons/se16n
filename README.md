@@ -38,20 +38,20 @@ the result table and its layouts from
 
 - ABAP Cloud (S/4 Public Cloud, BTP ABAP Environment), S/4 Private Cloud or
   On-Premise, or SAP NetWeaver AS ABAP 7.50 or higher
+- NetWeaver 7.02 - 7.40: the branch `702`, downported automatically from
+  `main` on every push - pull abap2UI5, layout-management and range-filter from their `702` branches as well
 - [abap2UI5](https://github.com/abap2UI5/abap2UI5)
 - [abap2UI5-addons/layout-management](https://github.com/abap2UI5-addons/layout-management) -
   the result table and its layouts
-- [abap2UI5-addons/selection-screen](https://github.com/abap2UI5-addons/selection-screen) -
-  the select-options and their variants
+- [abap2UI5-addons/range-filter](https://github.com/abap2UI5-addons/range-filter)
+  (formerly selection-screen) - the select-options and their variants
 
 **Steps** - with [abapGit](https://abapgit.org), in this order:
 
 1. [abap2UI5](https://github.com/abap2UI5/abap2UI5)
 2. [abap2UI5-addons/layout-management](https://github.com/abap2UI5-addons/layout-management)
-3. [abap2UI5-addons/selection-screen](https://github.com/abap2UI5-addons/selection-screen)
-4. this repository (branch `main`)
-
-There is no 7.02 downport: selection-screen has no `702` branch.
+3. [abap2UI5-addons/range-filter](https://github.com/abap2UI5-addons/range-filter)
+4. this repository - branch `main`, or `702` on NetWeaver 7.02 - 7.40
 
 **Start** - run it like any abap2UI5 app: `?app_start=z2ui5_cl_tm_se16_01`.
 Before you open it to other users, read [Security](#security).

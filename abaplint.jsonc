@@ -23,8 +23,8 @@
       "files": "/src/**/*.*"
     },
     {
-      "url": "https://github.com/abap2UI5-addons/selection-screen",
-      "folder": "/selection-screen",
+      "url": "https://github.com/abap2UI5-addons/range-filter",
+      "folder": "/range-filter",
       "files": "/src/**/*.*"
     }
   ],
