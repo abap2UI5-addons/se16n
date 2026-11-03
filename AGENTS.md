@@ -1,8 +1,7 @@
 # AGENTS.md — AI Assistant Guide for abap2UI5 se16n
 
 > This file follows the cross-tool AGENTS.md convention and is the single
-> agent instruction file of this repository — Claude Code reads `AGENTS.md`
-> natively, there is no separate `CLAUDE.md`.
+> agent instruction file of this repository — `CLAUDE.md` only points here.
 
 ## Project Overview
 
@@ -47,7 +46,7 @@ Installed alongside via abapGit; declared in the abaplint configs:
 
 * [abap2UI5](https://github.com/abap2UI5/abap2UI5)
 * [layout-management](https://github.com/abap2UI5-addons/layout-management)
-* [selection-screen](https://github.com/abap2UI5-addons/selection-screen)
+* [range-filter](https://github.com/abap2UI5-addons/range-filter)
 
 ## Security
 
@@ -77,7 +76,6 @@ CI:
 * `check-rename` — namespace-rename check (`npm run rename`, `.github/scripts/rename.mjs`)
 * `build-rename` — manual workflow that pushes a namespace-renamed branch
   `rename_<name>` for a parallel install
-
 * `publish-702` / `abap-702` — `publish-702` writes the downported `702`
   branch on every push to `main` (`npm run auto_downport` against
   `.github/abaplint/abap_702.jsonc`), and `abap-702` lints it. Never commit to
