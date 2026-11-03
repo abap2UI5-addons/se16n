@@ -9,3 +9,7 @@ output
 .github/badges/
 .github/abaplint/rename-deps/
 .unit/
+site/node_modules/
+site/.vitepress/cache/
+site/.vitepress/dist/
+build/

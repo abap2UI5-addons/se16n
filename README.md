@@ -19,7 +19,7 @@ pick a saved layout and see the result as a table whose columns you can
 rearrange and save as a layout. It runs on ABAP Cloud, where there is no
 SE16N, as well as on premise. A tool for developers and consultants.
 
-> Part of [abap2UI5-addons](https://github.com/abap2UI5-addons) - addons and apps for [abap2UI5](https://github.com/abap2UI5/abap2UI5), installed with [abapGit](https://abapgit.org).
+> Part of [abap2UI5-addons](https://github.com/abap2UI5-addons) - addons and apps for [abap2UI5](https://github.com/abap2UI5/abap2UI5), installed with [abapGit](https://abapgit.org). Documentation: [abap2ui5-addons.github.io/se16n](https://abap2ui5-addons.github.io/se16n/).
 
 ## Why
 
