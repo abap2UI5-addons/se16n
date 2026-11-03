@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
+CLASS z2ui5_cl_se16_app_01 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -15,6 +15,10 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
     " the table the select-options were built for - mv_tabname is the input
     " field and may have been changed since
     DATA mv_tabname_loaded TYPE string.
+    " set while z2ui5_cl_se16_app_02 runs: on_navigated tells by it, not by a
+    " cast, that the result list returned (no type reference - the two
+    " classes would be cyclic)
+    DATA mv_check_list_open TYPE abap_bool.
 
     METHODS on_event.
     METHODS view_display.
@@ -24,7 +28,7 @@ CLASS z2ui5_cl_tm_se16_01 DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
+CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
 
   METHOD on_event.
 
@@ -50,7 +54,8 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
           on_init( ).
           RETURN.
         ENDIF.
-        client->nav_app_call( NEW z2ui5_cl_tm_se16_02( ) ).
+        mv_check_list_open = abap_true.
+        client->nav_app_call( NEW z2ui5_cl_se16_app_02( ) ).
 
       WHEN `BACK`.
         client->nav_app_leave( ).
@@ -113,6 +118,8 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
         IF client->check_on_init( ).
           on_init( ).
         ELSEIF mo_multiselect IS BOUND AND mo_multiselect->main( client ).
+          " the multi-select popup handled the roundtrip itself
+          RETURN.
         ELSEIF client->check_on_navigated( ).
           on_navigated( ).
         ELSE.
@@ -153,13 +160,19 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
 
   METHOD on_navigated.
 
-    " which app handed control back decides what to do - asked with IS
-    " INSTANCE OF instead of a CAST whose failure an empty CATCH swallowed,
-    " so an error in the branch that does run reaches the message box in main
-    DATA(lo_prev) = client->get_app_prev( ).
+    " which app handed control back decides what to do - the layout popup is
+    " asked with a cast (IS INSTANCE OF has no 7.02 downport). The TRY holds
+    " only the cast, so an error in the branch that does run still reaches the
+    " message box in main.
+    DATA lo_layo_pop TYPE REF TO z2ui5_cl_layo_pop_w_sel.
+    TRY.
+        lo_layo_pop ?= client->get_app_prev( ).
+      CATCH cx_sy_move_cast_error.
+        CLEAR lo_layo_pop.
+    ENDTRY.
 
-    IF lo_prev IS INSTANCE OF z2ui5_cl_layo_pop_w_sel.
-      DATA(lo_layout) = CAST z2ui5_cl_layo_pop_w_sel( lo_prev )->result( ).
+    IF lo_layo_pop IS BOUND.
+      DATA(lo_layout) = lo_layo_pop->result( ).
 
       IF lo_layout-check_confirmed = abap_true.
         FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
@@ -168,7 +181,8 @@ CLASS z2ui5_cl_tm_se16_01 IMPLEMENTATION.
         view_display( ).
       ENDIF.
 
-    ELSEIF lo_prev IS INSTANCE OF z2ui5_cl_tm_se16_02.
+    ELSEIF mv_check_list_open = abap_true.
+      mv_check_list_open = abap_false.
       view_display( ).
     ENDIF.
   ENDMETHOD.

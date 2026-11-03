@@ -38,23 +38,35 @@ the result table and its layouts from
 
 - ABAP Cloud (S/4 Public Cloud, BTP ABAP Environment), S/4 Private Cloud or
   On-Premise, or SAP NetWeaver AS ABAP 7.50 or higher
+- NetWeaver 7.02 - 7.40: the branch `702`, downported automatically from
+  `main` on every push - pull abap2UI5, layout-management and range-filter from their `702` branches as well
 - [abap2UI5](https://github.com/abap2UI5/abap2UI5)
 - [abap2UI5-addons/layout-management](https://github.com/abap2UI5-addons/layout-management) -
   the result table and its layouts
-- [abap2UI5-addons/selection-screen](https://github.com/abap2UI5-addons/selection-screen) -
-  the select-options and their variants
+- [abap2UI5-addons/range-filter](https://github.com/abap2UI5-addons/range-filter)
+  (formerly selection-screen) - the select-options and their variants
+
+**Renamed (2026-11).** `z2ui5_cl_tm_se16_01`/`_02` are `z2ui5_cl_se16_app_01`/`_02` now - the `tm` segment belongs to table-maintenance. After the pull abapGit lists the old classes as deleted in the repository: delete them, and update `?app_start=` links.
 
 **Steps** - with [abapGit](https://abapgit.org), in this order:
 
 1. [abap2UI5](https://github.com/abap2UI5/abap2UI5)
 2. [abap2UI5-addons/layout-management](https://github.com/abap2UI5-addons/layout-management)
-3. [abap2UI5-addons/selection-screen](https://github.com/abap2UI5-addons/selection-screen)
-4. this repository (branch `main`)
+3. [abap2UI5-addons/range-filter](https://github.com/abap2UI5-addons/range-filter)
+4. this repository - branch `main`, or `702` on NetWeaver 7.02 - 7.40
 
-There is no 7.02 downport: selection-screen has no `702` branch.
-
-**Start** - run it like any abap2UI5 app: `?app_start=z2ui5_cl_tm_se16_01`.
+**Start** - run it like any abap2UI5 app: `?app_start=z2ui5_cl_se16_app_01`.
 Before you open it to other users, read [Security](#security).
+
+### Parallel installation (namespace rename)
+
+To run a second copy next to the original in the same system, rename it the
+way abap2UI5 itself is renamed: run the workflow **build-rename** (Actions →
+build-rename → Run workflow) with the name your abap2UI5 installation was
+renamed to - e.g. `ZMYUI5` or `/CA2UI5/`. It pushes the branch `rename_<name>`, in
+which every object and every reference to abap2UI5 and to the addons this one
+needs carries that name; pull it with abapGit. Rename abap2UI5 and every addon
+of the installation with the same name.
 
 ## Usage
 
@@ -68,8 +80,8 @@ Before you open it to other users, read [Security](#security).
 
 | Class | Purpose |
 |---|---|
-| `z2ui5_cl_tm_se16_01` | Start app: table name, selection, layout |
-| `z2ui5_cl_tm_se16_02` | Result list |
+| `z2ui5_cl_se16_app_01` | Start app: table name, selection, layout |
+| `z2ui5_cl_se16_app_02` | Result list |
 | `z2ui5_cl_se16_context` | Vendored copy of the two abap2UI5 utility methods the app uses |
 
 ## Features
