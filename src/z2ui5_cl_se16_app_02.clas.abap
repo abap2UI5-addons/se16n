@@ -55,9 +55,6 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
     CASE client->get( )-event.
       WHEN `REFRESH`.
         set_data( ).
-      WHEN `BUTTON_START`.
-        set_data( ).
-        view_display( ).
       WHEN `BACK`.
         client->nav_app_leave( ).
       WHEN OTHERS.

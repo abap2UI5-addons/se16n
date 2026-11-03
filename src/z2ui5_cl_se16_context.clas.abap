@@ -4,50 +4,12 @@ CLASS z2ui5_cl_se16_context DEFINITION
 
   PUBLIC SECTION.
 
-    " Environment-abstracted character/format constants. Callers must read
-    " these from z2ui5_cl_util instead of referencing cl_abap_char_utilities /
-    " cl_abap_format directly, so the dependency on those SAP standard classes
-    " lives in exactly one place (this class' class_constructor) and can be
-    " ported once for non-ABAP runtimes (e.g. transpiled JS).
-    CLASS-DATA cv_char_util_newline        TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_char_util_cr_lf          TYPE c LENGTH 2 READ-ONLY.
-
-    CLASS-DATA cv_char_util_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_char_util_charsize       TYPE i          READ-ONLY.
-
-    CLASS-DATA cv_format_e_xml_attr             TYPE i          READ-ONLY.
-
-    " RTTI type-kind / kind / visibility constants, so callers can branch on
-    " stored type_kind/kind fields without referencing cl_abap_typedescr /
-    " cl_abap_objectdescr directly.
-    CLASS-DATA cv_typedescr_typekind_table   TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_typekind_dref    TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_typekind_oref    TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_typekind_struct1 TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_typekind_struct2 TYPE c LENGTH 1 READ-ONLY.
-
-    " the three elementary kinds whose JSON form is not their ABAP form
-    " (ISO date/time strings, ISO timestamps) - what a caller converting a
-    " scalar between the two representations has to branch on
-    CLASS-DATA cv_typedescr_typekind_date    TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_typekind_time    TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_typekind_packed  TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_kind_struct      TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_kind_elem        TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_typedescr_kind_ref         TYPE c LENGTH 1 READ-ONLY.
-
-    CLASS-DATA cv_objectdescr_public         TYPE c LENGTH 1 READ-ONLY.
+    " Environment-abstracted newline. Callers must read it from
+    " z2ui5_cl_se16_context instead of referencing cl_abap_char_utilities
+    " directly, so the dependency on that SAP standard class lives in exactly
+    " one place (this class' class_constructor) and can be ported once for
+    " non-ABAP runtimes (e.g. transpiled JS).
+    CLASS-DATA cv_char_util_newline TYPE c LENGTH 1 READ-ONLY.
 
     CLASS-METHODS class_constructor.
 
@@ -120,24 +82,7 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    cv_char_util_newline        = cl_abap_char_utilities=>newline.
-    cv_char_util_cr_lf          = cl_abap_char_utilities=>cr_lf.
-    cv_char_util_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
-    cv_char_util_charsize       = cl_abap_char_utilities=>charsize.
-    cv_format_e_xml_attr        = cl_abap_format=>e_xml_attr.
-
-    cv_typedescr_typekind_table      = cl_abap_typedescr=>typekind_table.
-    cv_typedescr_typekind_dref       = cl_abap_typedescr=>typekind_dref.
-    cv_typedescr_typekind_oref       = cl_abap_typedescr=>typekind_oref.
-    cv_typedescr_typekind_struct1    = cl_abap_typedescr=>typekind_struct1.
-    cv_typedescr_typekind_struct2    = cl_abap_typedescr=>typekind_struct2.
-    cv_typedescr_typekind_date       = cl_abap_typedescr=>typekind_date.
-    cv_typedescr_typekind_time       = cl_abap_typedescr=>typekind_time.
-    cv_typedescr_typekind_packed     = cl_abap_typedescr=>typekind_packed.
-    cv_typedescr_kind_struct         = cl_abap_typedescr=>kind_struct.
-    cv_typedescr_kind_elem           = cl_abap_typedescr=>kind_elem.
-    cv_typedescr_kind_ref            = cl_abap_typedescr=>kind_ref.
-    cv_objectdescr_public            = cl_abap_objectdescr=>public.
+    cv_char_util_newline = cl_abap_char_utilities=>newline.
 
   ENDMETHOD.
 

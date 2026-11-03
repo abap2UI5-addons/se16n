@@ -82,7 +82,8 @@ of the installation with the same name.
 |---|---|
 | `z2ui5_cl_se16_app_01` | Start app: table name, selection, layout |
 | `z2ui5_cl_se16_app_02` | Result list |
-| `z2ui5_cl_se16_context` | Vendored copy of the two abap2UI5 utility methods the app uses |
+| `z2ui5_cl_se16_context` | Trimmed copy of abap-util's `zabaputil_cl_util_context`: the two utility methods the app uses and their helpers |
+| `z2ui5_cx_se16_error` | Copy of abap-util's `zabaputil_cx_util_error`, the exception of the context class |
 
 ## Features
 
