@@ -47,7 +47,7 @@ Installed alongside via abapGit; declared in the abaplint configs:
 
 * [abap2UI5](https://github.com/abap2UI5/abap2UI5)
 * [layout-management](https://github.com/abap2UI5-addons/layout-management)
-* [selection-screen](https://github.com/abap2UI5-addons/selection-screen)
+* [range-filter](https://github.com/abap2UI5-addons/range-filter)
 
 ## Security
 

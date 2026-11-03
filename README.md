@@ -4,7 +4,7 @@
 [![ABAP](https://img.shields.io/badge/ABAP-Cloud%20%7C%20Standard%20%E2%89%A5%207.50-blue)](#installation)
 [![abap2UI5](https://img.shields.io/badge/requires-abap2UI5-blue)](https://github.com/abap2UI5/abap2UI5)
 [![layout-management](https://img.shields.io/badge/requires-layout--management-blue)](https://github.com/abap2UI5-addons/layout-management)
-[![selection-screen](https://img.shields.io/badge/requires-selection--screen-blue)](https://github.com/abap2UI5-addons/selection-screen)
+[![range-filter](https://img.shields.io/badge/requires-range--filter-blue)](https://github.com/abap2UI5-addons/range-filter)
 [![License](https://img.shields.io/github/license/abap2UI5-addons/se16n)](LICENSE)
 <br>
 [![ABAP Cloud](https://img.shields.io/github/actions/workflow/status/abap2UI5-addons/se16n/abap-cloud.yaml?branch=main&label=ABAP%20Cloud)](https://github.com/abap2UI5-addons/se16n/actions/workflows/abap-cloud.yaml)
@@ -28,7 +28,7 @@ on ABAP Cloud there is no SAP GUI and no SE16N to do it. se16n gives you the
 same quick look as a browser app.
 
 It is also a compact example of how the addons fit together: the selection
-comes from [selection-screen](https://github.com/abap2UI5-addons/selection-screen),
+comes from [range-filter](https://github.com/abap2UI5-addons/range-filter),
 the result table and its layouts from
 [layout-management](https://github.com/abap2UI5-addons/layout-management).
 
