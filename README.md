@@ -1,7 +1,7 @@
 # se16n
 
 [![abap2UI5-addons](https://img.shields.io/badge/abap2UI5--addons-app-1873b4)](https://github.com/abap2UI5-addons)
-[![ABAP](https://img.shields.io/badge/ABAP-Cloud%20%7C%20Standard%20%E2%89%A5%207.50-blue)](#installation)
+[![ABAP](https://img.shields.io/badge/ABAP-Cloud%20%7C%20Standard%20%E2%89%A5%207.50%20%7C%207.02-blue)](#installation)
 [![abap2UI5](https://img.shields.io/badge/requires-abap2UI5-blue)](https://github.com/abap2UI5/abap2UI5)
 [![layout-management](https://img.shields.io/badge/requires-layout--management-blue)](https://github.com/abap2UI5-addons/layout-management)
 [![range-filter](https://img.shields.io/badge/requires-range--filter-blue)](https://github.com/abap2UI5-addons/range-filter)
@@ -9,6 +9,7 @@
 <br>
 [![ABAP Cloud](https://img.shields.io/github/actions/workflow/status/abap2UI5-addons/se16n/abap-cloud.yaml?branch=main&label=ABAP%20Cloud)](https://github.com/abap2UI5-addons/se16n/actions/workflows/abap-cloud.yaml)
 [![ABAP Standard](https://img.shields.io/github/actions/workflow/status/abap2UI5-addons/se16n/abap-standard.yaml?branch=main&label=ABAP%20Standard)](https://github.com/abap2UI5-addons/se16n/actions/workflows/abap-standard.yaml)
+[![ABAP 7.02](https://img.shields.io/github/actions/workflow/status/abap2UI5-addons/se16n/abap-702.yaml?branch=main&label=ABAP%207.02)](https://github.com/abap2UI5-addons/se16n/actions/workflows/abap-702.yaml)
 [![rename](https://img.shields.io/github/actions/workflow/status/abap2UI5-addons/se16n/check-rename.yaml?branch=main&label=rename)](https://github.com/abap2UI5-addons/se16n/actions/workflows/check-rename.yaml)
 [![check-abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5-addons%2Fse16n%2Fbadges%2Fcheck-abap2ui5.json)](https://github.com/abap2UI5-addons/se16n/actions/workflows/check-abap2ui5.yaml)
 [![abap2UI5](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fabap2UI5-addons%2Fse16n%2Fbadges%2Fabap2ui5.json)](https://github.com/abap2UI5-addons/se16n/actions/workflows/check-abap2ui5.yaml)
@@ -74,7 +75,7 @@ of the installation with the same name.
    all its fields appear below; variants can be saved and loaded there.
 2. **Layout** (optional) - **Choose Layout** picks a layout saved earlier for
    this table.
-3. **GO** - shows the content, at most 100 rows. The settings button of the
+3. **Go** - shows the content, at most 100 rows. The settings button of the
    table opens the layout popup: columns, order, labels, sorting - saved per
    table. **Refresh** reads the data again.
 
@@ -88,6 +89,8 @@ of the installation with the same name.
 ## Features
 
 * SE16N transaction in your browser
+* Select-options for every field of the table, with saved variants (range-filter)
+* Result list with user-defined layouts per table (layout-management)
 
 ## Demo
 
@@ -110,6 +113,10 @@ npm run lint            # abaplint, Standard ABAP (v750)
 npm run check:cloud     # abaplint, ABAP Cloud
 npm run check:abap2ui5  # abap2UI5-linter over apps and views
 npm run rename          # namespace rename check
+npm run unit            # ABAP Unit tests on abap2UI5's transpiled Node runtime
+npm run downport        # downport the source to 7.02 syntax
+npm run site            # the GitHub Pages site (VitePress) into build/site
+npm run site:dev        # the same with the VitePress dev server
 ```
 
 ## Contributing

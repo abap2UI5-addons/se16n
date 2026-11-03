@@ -76,7 +76,6 @@ CI:
 * `check-rename` — namespace-rename check (`npm run rename`, `.github/scripts/rename.mjs`)
 * `build-rename` — manual workflow that pushes a namespace-renamed branch
   `rename_<name>` for a parallel install
-
 * `publish-702` / `abap-702` — `publish-702` writes the downported `702`
   branch on every push to `main` (`npm run auto_downport` against
   `.github/abaplint/abap_702.jsonc`), and `abap-702` lints it. Never commit to

@@ -103,7 +103,7 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
         )->ele( `OverflowToolbar`
         )->tag( `ToolbarSpacer`
         )->tag( `Button`
-        )->a( n = `text` v = `GO`
+        )->a( n = `text` v = `Go`
         )->a( n = `type` v = `Emphasized`
         )->a( n = `press` v = client->_event( `GO` ) ).
 
