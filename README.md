@@ -58,6 +58,16 @@ the result table and its layouts from
 **Start** - run it like any abap2UI5 app: `?app_start=z2ui5_cl_se16_app_01`.
 Before you open it to other users, read [Security](#security).
 
+### Parallel installation (namespace rename)
+
+To run a second copy next to the original in the same system, rename it the
+way abap2UI5 itself is renamed: run the workflow **build-rename** (Actions →
+build-rename → Run workflow) with the name your abap2UI5 installation was
+renamed to - e.g. `ZMYUI5` or `/CA2UI5/`. It pushes the branch `rename_<name>`, in
+which every object and every reference to abap2UI5 and to the addons this one
+needs carries that name; pull it with abapGit. Rename abap2UI5 and every addon
+of the installation with the same name.
+
 ## Usage
 
 1. **Table** - enter the table name and press **Load**. The select-options for
