@@ -5,8 +5,8 @@ hero:
   name: "SE16N"
   text: "Browse and filter table content: the classic SE16N in the browser."
   image:
-    src: /favicon.png
-    alt: abap2UI5
+    src: /logo.svg
+    alt: abap2UI5 addons
   actions:
     - theme: brand
       text: Get started
