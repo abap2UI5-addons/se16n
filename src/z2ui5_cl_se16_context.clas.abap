@@ -22,7 +22,7 @@ CLASS z2ui5_cl_se16_context DEFINITION
         editable TYPE abap_bool,
       END OF ty_s_token.
 
-    TYPES ty_t_token TYPE STANDARD TABLE OF ty_s_token WITH EMPTY KEY.
+    TYPES ty_t_token TYPE STANDARD TABLE OF ty_s_token WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_s_range,
@@ -32,7 +32,7 @@ CLASS z2ui5_cl_se16_context DEFINITION
         high   TYPE string,
       END OF ty_s_range.
 
-    TYPES ty_t_range TYPE STANDARD TABLE OF ty_s_range WITH EMPTY KEY.
+    TYPES ty_t_range TYPE STANDARD TABLE OF ty_s_range WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_s_filter_multi,
@@ -43,7 +43,7 @@ CLASS z2ui5_cl_se16_context DEFINITION
         t_token_removed TYPE ty_t_token,
       END OF ty_s_filter_multi.
 
-    TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_filter_multi WITH EMPTY KEY.
+    TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_filter_multi WITH DEFAULT KEY.
 
     CLASS-METHODS filter_get_sql_where
       IMPORTING
@@ -88,7 +88,16 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
   METHOD filter_get_sql_where.
 
-    LOOP AT val INTO DATA(ls_filter).
+    DATA ls_filter LIKE LINE OF val.
+      DATA lv_include TYPE string.
+      DATA lv_exclude TYPE string.
+      DATA ls_range LIKE LINE OF ls_filter-t_range.
+        DATA lv_cond TYPE string.
+          DATA temp15 TYPE string.
+          DATA temp16 TYPE string.
+      DATA temp17 TYPE string.
+      DATA lv_field_where LIKE temp17.
+    LOOP AT val INTO ls_filter.
 
       IF ls_filter-t_range IS INITIAL.
         CONTINUE.
@@ -109,29 +118,47 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
       " already negated (filter_get_sql_cond_by_range), so the includes are
       " joined with OR and the excludes with AND - OR-ing them too let
       " every row through that missed a single exclude
-      DATA(lv_include) = ``.
-      DATA(lv_exclude) = ``.
-      LOOP AT ls_filter-t_range INTO DATA(ls_range).
-        DATA(lv_cond) = filter_get_sql_cond_by_range( fieldname = ls_filter-name
+
+      lv_include = ``.
+
+      lv_exclude = ``.
+
+      LOOP AT ls_filter-t_range INTO ls_range.
+
+        lv_cond = filter_get_sql_cond_by_range( fieldname = ls_filter-name
                                                       range     = ls_range ).
         IF lv_cond IS INITIAL.
           CONTINUE.
         ENDIF.
         IF ls_range-sign = `E`.
-          lv_exclude = COND #( WHEN lv_exclude IS INITIAL THEN lv_cond
-                               ELSE |{ lv_exclude } AND { lv_cond }| ).
+
+          IF lv_exclude IS INITIAL.
+            temp15 = lv_cond.
+          ELSE.
+            temp15 = |{ lv_exclude } AND { lv_cond }|.
+          ENDIF.
+          lv_exclude = temp15.
         ELSE.
-          lv_include = COND #( WHEN lv_include IS INITIAL THEN lv_cond
-                               ELSE |{ lv_include } OR { lv_cond }| ).
+
+          IF lv_include IS INITIAL.
+            temp16 = lv_cond.
+          ELSE.
+            temp16 = |{ lv_include } OR { lv_cond }|.
+          ENDIF.
+          lv_include = temp16.
         ENDIF.
       ENDLOOP.
 
-      DATA(lv_field_where) = COND string(
-        WHEN lv_include IS NOT INITIAL AND lv_exclude IS NOT INITIAL
-        THEN |( { lv_include } ) AND { lv_exclude }|
-        WHEN lv_include IS NOT INITIAL
-        THEN lv_include
-        ELSE lv_exclude ).
+
+      IF lv_include IS NOT INITIAL AND lv_exclude IS NOT INITIAL.
+        temp17 = |( { lv_include } ) AND { lv_exclude }|.
+      ELSEIF lv_include IS NOT INITIAL.
+        temp17 = lv_include.
+      ELSE.
+        temp17 = lv_exclude.
+      ENDIF.
+
+      lv_field_where = temp17.
 
       IF lv_field_where IS INITIAL.
         CONTINUE.
@@ -149,15 +176,21 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
   METHOD filter_get_sql_cond_by_range.
 
-    DATA(lv_low) = replace( val  = range-low
+    DATA lv_low TYPE string.
+    DATA lv_high TYPE string.
+    DATA lv_option LIKE range-option.
+    DATA lv_like TYPE string.
+    lv_low = replace( val  = range-low
                             sub  = `'`
                             with = `''`
                             occ  = 0 ).
-    DATA(lv_high) = replace( val  = range-high
+
+    lv_high = replace( val  = range-high
                              sub  = `'`
                              with = `''`
                              occ  = 0 ).
-    DATA(lv_option) = range-option.
+
+    lv_option = range-option.
 
     IF range-sign = `E`.
       CASE lv_option.
@@ -176,7 +209,8 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
     " CP: only * and + are wildcards - a _ or % the user typed is a plain
     " character, as in an IN range, so it is escaped
-    DATA(lv_like) = replace( val  = lv_low
+
+    lv_like = replace( val  = lv_low
                              sub  = `#`
                              with = `##`
                              occ  = 0 ).
@@ -228,6 +262,9 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
     " name ends in a short dump no CATCH stops - so it is handled here and
     " the caller gets an unbound reference instead
     DATA lo_type TYPE REF TO cl_abap_typedescr.
+    DATA temp18 TYPE REF TO cl_abap_datadescr.
+    DATA data_desc LIKE temp18.
+    DATA gr_dyntable_typ TYPE REF TO cl_abap_tabledescr.
     cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = val
                                          RECEIVING  p_descr_ref    = lo_type
                                          EXCEPTIONS type_not_found = 1
@@ -240,8 +277,12 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
     IF lo_type->kind = cl_abap_typedescr=>kind_class OR lo_type->kind = cl_abap_typedescr=>kind_intf.
       RETURN.
     ENDIF.
-    DATA(data_desc) = CAST cl_abap_datadescr( lo_type ).
-    DATA(gr_dyntable_typ) = cl_abap_tabledescr=>create( data_desc ).
+
+    temp18 ?= lo_type.
+
+    data_desc = temp18.
+
+    gr_dyntable_typ = cl_abap_tabledescr=>create( data_desc ).
     CREATE DATA result TYPE HANDLE gr_dyntable_typ.
 
   ENDMETHOD.
@@ -250,6 +291,7 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
     DATA lv_uuid      TYPE c LENGTH 32.
     DATA lv_classname TYPE string.
     DATA lv_fm        TYPE string.
+        DATA lx_uuid TYPE REF TO cx_root.
 
     TRY.
 
@@ -271,7 +313,8 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
         result = lv_uuid.
 
-      CATCH cx_root INTO DATA(lx_uuid).
+
+      CATCH cx_root INTO lx_uuid.
         " both UUID mechanisms failed - raise the framework exception so the
         " consumer's single top-level catch can turn it into a handled error.
         " ASSERT would raise the uncatchable ASSERTION_FAILED and bypass that
