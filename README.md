@@ -104,6 +104,14 @@ of the installation with the same name.
 
 This is a developer tool. It reads the contents of any table the user names, without an authorization check of its own — access is therefore only bounded by whatever restrictions exist on the underlying handler/service. Before using it beyond a development system, add your own authorization checks (e.g. `AUTHORITY-CHECK` on `S_TABU_DIS`/`S_TABU_NAM`) and restrict who may run the app.
 
+**That is a deliberate decision, not an open item.** abap2UI5 itself has no
+central authorization hook either: the framework leaves the check to the app,
+and this addon leaves it to the installation. Which check is the right one -
+`S_TABU_NAM`, `S_TABU_DIS`, an authorization object of your own, or what ABAP
+Cloud releases - depends on the system the addon runs in, so none is built in
+and none is planned. Whoever opens the app to more people than its developers
+adds the check that fits their system.
+
 ## Development
 
 ```bash
