@@ -16,17 +16,19 @@
       "files": "/src/**/*.*"
     },
     {
-      // the downported layout-management (its 702 branch)
+      // the downported layout-management (its 702 branch) - a folder of its own: the
+      // CI template fills /layout-management beside it with the commit .github/deps.json pins
       "url": "https://github.com/abap2UI5-addons/layout-management",
       "branch": "702",
-      "folder": "/layout-management",
+      "folder": "/layout-management-702",
       "files": "/src/**/*.*"
     },
     {
-      // the downported range-filter (its 702 branch)
+      // the downported range-filter (its 702 branch) - a folder of its own: the
+      // CI template fills /range-filter beside it with the commit .github/deps.json pins
       "url": "https://github.com/abap2UI5-addons/range-filter",
       "branch": "702",
-      "folder": "/range-filter",
+      "folder": "/range-filter-702",
       "files": "/src/**/*.*"
     }
   ],

@@ -13,3 +13,12 @@ site/node_modules/
 site/.vitepress/cache/
 site/.vitepress/dist/
 build/
+
+# the shared CI template: the sibling checkouts of pin-deps.mjs (rap-ext
+# .github/ci/README.md) and the folders it fills
+.deps/
+.ci-template/
+/layout-management/
+/range-filter/
+.github/abaplint/layout-management/
+.github/abaplint/range-filter/
