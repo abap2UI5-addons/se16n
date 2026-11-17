@@ -31,6 +31,7 @@ ENDCLASS.
 CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
 
   METHOD on_event.
+        DATA temp1 TYPE REF TO z2ui5_cl_se16_app_02.
 
     CASE client->get( )-event.
 
@@ -55,7 +56,9 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
           RETURN.
         ENDIF.
         mv_check_list_open = abap_true.
-        client->nav_app_call( NEW z2ui5_cl_se16_app_02( ) ).
+
+        CREATE OBJECT temp1 TYPE z2ui5_cl_se16_app_02.
+        client->nav_app_call( temp1 ).
 
       WHEN `BACK`.
         client->nav_app_leave( ).
@@ -66,19 +69,24 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA vbox TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
                      )->ele( n = `View` ns = `mvc`
                      )->a( n = `xmlns` v = `sap.m`
                      )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
                      )->a( n = `displayBlock` v = `true`
                      )->a( n = `height` v = `100%` ).
-    DATA(page) = view->ele( `Shell`
+
+    page = view->ele( `Shell`
                      )->ele( `Page`
                      )->a( n = `title` v = `abap2UI5 - SE16 CLOUD - Start`
                      )->a( n = `navButtonPress` v = client->_event( `BACK` )
                      )->a( n = `showNavButton` b = client->check_app_prev_stack( )
                      )->a( n = `floatingFooter` b = abap_true ).
-    DATA(vbox) = page->ele( `VBox` ).
+
+    vbox = page->ele( `VBox` ).
 
     vbox->ele( `HBox`
         )->tag( `Input`
@@ -112,26 +120,29 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+        DATA x TYPE REF TO cx_root.
     TRY.
         me->client = client.
 
-        IF client->check_on_init( ).
+        IF client->check_on_init( ) IS NOT INITIAL.
           on_init( ).
-        ELSEIF mo_multiselect IS BOUND AND mo_multiselect->main( client ).
+        ELSEIF mo_multiselect IS BOUND AND mo_multiselect->main( client ) IS NOT INITIAL.
           " the multi-select popup handled the roundtrip itself
           RETURN.
-        ELSEIF client->check_on_navigated( ).
+        ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
           on_navigated( ).
         ELSE.
           on_event( ).
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         client->message_box_display( x ).
     ENDTRY.
   ENDMETHOD.
 
   METHOD on_init.
+        DATA temp2 TYPE z2ui5_t_13.
 
     " a layout belongs to the table it was chosen for (handle02) - loading
     " another table must not carry it over, or GO applies it to the wrong table
@@ -146,9 +157,13 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
     IF mv_tabname IS NOT INITIAL.
       mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mv_tabname ).
       IF mr_table IS BOUND.
+
+        CLEAR temp2.
+        temp2-handle01 = `ZSE16`.
+        temp2-handle02 = mv_tabname.
         mo_multiselect = z2ui5_cl_sel_multisel=>factory_by_name(
                              val       = mv_tabname
-                             s_variant = VALUE #( handle01 = `ZSE16` handle02 = mv_tabname ) ).
+                             s_variant = temp2 ).
       ELSE.
         client->message_toast_display( |Table { mv_tabname } not found| ).
       ENDIF.
@@ -165,6 +180,8 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
     " only the cast, so an error in the branch that does run still reaches the
     " message box in main.
     DATA lo_layo_pop TYPE REF TO z2ui5_cl_layo_pop_w_sel.
+      DATA lo_layout TYPE z2ui5_cl_layo_pop_w_sel=>ty_s_result.
+        FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
     TRY.
         lo_layo_pop ?= client->get_app_prev( ).
       CATCH cx_sy_move_cast_error.
@@ -172,10 +189,11 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
     ENDTRY.
 
     IF lo_layo_pop IS BOUND.
-      DATA(lo_layout) = lo_layo_pop->result( ).
+
+      lo_layout = lo_layo_pop->result( ).
 
       IF lo_layout-check_confirmed = abap_true.
-        FIELD-SYMBOLS <layout> TYPE z2ui5_t_11.
+
         ASSIGN lo_layout-row->* TO <layout>.
         ms_layout = <layout>.
         view_display( ).
