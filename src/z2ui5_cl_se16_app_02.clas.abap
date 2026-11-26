@@ -139,9 +139,6 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
     IF app->mv_rerender = abap_true.
       " subcolumns need rerendering to work
       view_display( ).
-    ELSE.
-      " for all other layout changes a view model update is enough
-      client->view_model_update( ).
     ENDIF.
 
   ENDMETHOD.

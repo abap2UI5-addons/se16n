@@ -82,7 +82,7 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
 
     vbox->ele( `HBox`
         )->tag( `Input`
-        )->a( n = `value` v = client->_bind_edit( mv_tabname )
+        )->a( n = `value` v = client->_bind( mv_tabname )
         )->a( n = `description` v = `Table`
         )->a( n = `submit` v = client->_event( `UPDATE_TABLE` )
         )->tag( `Button`
@@ -90,7 +90,7 @@ CLASS z2ui5_cl_se16_app_01 IMPLEMENTATION.
         )->a( n = `text` v = `Load` ).
     vbox->ele( `HBox`
         )->tag( `Input`
-        )->a( n = `value` v = client->_bind_edit( ms_layout-layout )
+        )->a( n = `value` v = client->_bind( ms_layout-layout )
         )->a( n = `description` v = `Layout`
         )->a( n = `enabled` b = abap_false
         )->tag( `Button`
