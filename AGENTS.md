@@ -40,6 +40,15 @@ dependency management).
 4. **Periodic AI sync-back:** abap-util compares all consumers every few weeks
    and merges what was added or fixed here back into the master.
 
+`.github/abap-util.json` names the copies and their masters for abap-util's
+`sync-check`: with abap-util checked out next to this repository,
+`node ../abap-util/.github/scripts/sync-check.mjs --consumer . --report`
+lists every method whose body or declaration differs from the master and
+every method only this copy has. `commit` is the abap-util commit the copies
+match: run the script without `--report` at that commit and it fails on any
+difference that is not named under `settled` or `own`. After a refresh, set
+`commit` to the commit the copies were taken from.
+
 ## Dependencies
 
 Installed alongside via abapGit; declared in the abaplint configs:
