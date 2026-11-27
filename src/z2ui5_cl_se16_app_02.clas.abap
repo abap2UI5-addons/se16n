@@ -28,27 +28,31 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
     CONSTANTS lc_max_rows TYPE i VALUE 100.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
-    DATA(lv_where) = z2ui5_cl_se16_context=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
+    DATA lv_where TYPE string.
+    DATA lv_read TYPE i.
+        DATA lx_error TYPE REF TO cx_root.
+    lv_where = z2ui5_cl_se16_context=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
     ASSIGN mr_table->* TO <tab>.
     CLEAR <tab>.
 
     " one row more than is shown: only then are there more rows than that
-    DATA(lv_read) = lc_max_rows + 1.
+
+    lv_read = lc_max_rows + 1.
     TRY.
         TRY.
-            SELECT * FROM (mo_prev->mv_tabname)
+            SELECT * FROM (mo_prev->mv_tabname) UP TO lv_read ROWS INTO CORRESPONDING FIELDS OF TABLE <tab>
               WHERE (lv_where)
               ORDER BY PRIMARY KEY
-              INTO CORRESPONDING FIELDS OF TABLE @<tab>
-              UP TO @lv_read ROWS.
+
+              .
 
           CATCH cx_sy_dynamic_osql_error.
             " a view without key fields has no primary key to sort by - the
             " rows are read unsorted then
-            SELECT * FROM (mo_prev->mv_tabname)
+            SELECT * FROM (mo_prev->mv_tabname) UP TO lv_read ROWS INTO CORRESPONDING FIELDS OF TABLE <tab>
               WHERE (lv_where)
-              INTO CORRESPONDING FIELDS OF TABLE @<tab>
-              UP TO @lv_read ROWS.                        "#EC CI_NOORDER
+
+              .                        "#EC CI_NOORDER
         ENDTRY.
 
         IF lines( <tab> ) > lc_max_rows.
@@ -56,7 +60,8 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
           client->message_toast_display( |Only the first { lc_max_rows } rows are shown| ).
         ENDIF.
 
-      CATCH cx_root INTO DATA(lx_error).
+
+      CATCH cx_root INTO lx_error.
         client->message_toast_display( |Could not read the table: { lx_error->get_text( ) }| ).
     ENDTRY.
 
@@ -78,7 +83,9 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(view) = z2ui5_cl_ui5_view_builder=>factory(
+    DATA view TYPE REF TO z2ui5_cl_ui5_view_builder.
+    DATA page TYPE REF TO z2ui5_cl_ui5_view_builder.
+    view = z2ui5_cl_ui5_view_builder=>factory(
                      )->ele( n = `View` ns = `mvc`
                      )->a( n = `xmlns` v = `sap.m`
                      )->a( n = `xmlns:mvc` v = `sap.ui.core.mvc`
@@ -91,7 +98,8 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
                      )->a( n = `displayBlock` v = `true`
                      )->a( n = `height` v = `100%` ).
 
-    DATA(page) = view->ele( `Shell`
+
+    page = view->ele( `Shell`
                      )->ele( `Page`
                      )->a( n = `id` v = `page_main`
                      )->a( n = `title` t = |abap2UI5 - SE16 CLOUD - { mo_prev->mv_tabname }|
@@ -119,19 +127,21 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
+        DATA x TYPE REF TO cx_root.
     TRY.
 
         me->client = client.
 
-        IF client->check_on_init( ).
+        IF client->check_on_init( ) IS NOT INITIAL.
           on_init( ).
-        ELSEIF client->check_on_navigated( ).
+        ELSEIF client->check_on_navigated( ) IS NOT INITIAL.
           on_navigated( ).
         ELSEIF client->get( )-event IS NOT INITIAL.
           on_event( ).
         ENDIF.
 
-      CATCH cx_root INTO DATA(x).
+
+      CATCH cx_root INTO x.
         client->message_box_display( x ).
     ENDTRY.
   ENDMETHOD.
@@ -157,7 +167,9 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
 
   METHOD on_init.
 
-    mo_prev = CAST #( client->get_app_prev( ) ).
+    DATA temp1 TYPE REF TO z2ui5_cl_se16_app_01.
+    temp1 ?= client->get_app_prev( ).
+    mo_prev = temp1.
     mr_table = z2ui5_cl_se16_context=>rtti_create_tab_by_name( mo_prev->mv_tabname ).
     set_data( ).
 
