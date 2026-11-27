@@ -26,21 +26,33 @@ CLASS z2ui5_cl_se16_app_02 IMPLEMENTATION.
   METHOD set_data.
 
     CONSTANTS lc_max_rows TYPE i VALUE 100.
-    FIELD-SYMBOLS <tab> TYPE ANY TABLE.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
     DATA(lv_where) = z2ui5_cl_se16_context=>filter_get_sql_where( mo_prev->mo_multiselect->ms_result-t_filter ).
     ASSIGN mr_table->* TO <tab>.
     CLEAR <tab>.
-    TRY.
-        " ORDER BY keeps UP TO downportable: without it the 702 downport
-        " leaves the statement half rewritten
-        SELECT * FROM (mo_prev->mv_tabname)
-          WHERE (lv_where)
-          ORDER BY PRIMARY KEY
-          INTO CORRESPONDING FIELDS OF TABLE @<tab>
-          UP TO @lc_max_rows ROWS.
 
-        IF lines( <tab> ) >= lc_max_rows.
+    " one row more than is shown: only then are there more rows than that
+    DATA(lv_read) = lc_max_rows + 1.
+    TRY.
+        TRY.
+            SELECT * FROM (mo_prev->mv_tabname)
+              WHERE (lv_where)
+              ORDER BY PRIMARY KEY
+              INTO CORRESPONDING FIELDS OF TABLE @<tab>
+              UP TO @lv_read ROWS.
+
+          CATCH cx_sy_dynamic_osql_error.
+            " a view without key fields has no primary key to sort by - the
+            " rows are read unsorted then
+            SELECT * FROM (mo_prev->mv_tabname)
+              WHERE (lv_where)
+              INTO CORRESPONDING FIELDS OF TABLE @<tab>
+              UP TO @lv_read ROWS.                        "#EC CI_NOORDER
+        ENDTRY.
+
+        IF lines( <tab> ) > lc_max_rows.
+          DELETE <tab> FROM lv_read.
           client->message_toast_display( |Only the first { lc_max_rows } rows are shown| ).
         ENDIF.
 
