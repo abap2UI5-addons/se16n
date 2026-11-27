@@ -40,6 +40,15 @@ dependency management).
 4. **Periodic AI sync-back:** abap-util compares all consumers every few weeks
    and merges what was added or fixed here back into the master.
 
+`.github/abap-util.json` names the copies and their masters for abap-util's
+`sync-check`: with abap-util checked out next to this repository,
+`node ../abap-util/.github/scripts/sync-check.mjs --consumer . --report`
+lists every method whose body or declaration differs from the master and
+every method only this copy has. `commit` is the abap-util commit the copies
+match: run the script without `--report` at that commit and it fails on any
+difference that is not named under `settled` or `own`. After a refresh, set
+`commit` to the commit the copies were taken from.
+
 ## Dependencies
 
 Installed alongside via abapGit; declared in the abaplint configs:
@@ -81,8 +90,12 @@ pinned by commit in the `uses:` lines and moved by `bump-deps`):
   abap2UI5 tests itself: `npm run unit` (`.github/scripts/unit.mjs`) copies
   the packages into a checkout of abap2UI5's `main` (abap2UI5-ext,
   layout-management and range-filter beside it), downports, transpiles and
-  runs the tests of this repository's classes - and `rename`, the
-  namespace-rename check (`npm run rename`, `.github/scripts/rename.mjs`)
+  runs the tests of this repository's classes - `npm run check:702`, the
+  7.02 gate of a pull request (`.github/scripts/check-702.sh` downports a
+  scratch copy of `src/` in `build/702` and lints it with
+  `.github/abaplint/abap_702.jsonc`; `src/` is never rewritten) - and
+  `rename`, the namespace-rename check (`npm run rename`,
+  `.github/scripts/rename.mjs`)
 * `build-rename` — manual workflow that pushes a namespace-renamed branch
   `rename_<name>` for a parallel install
 * `ci-702` — writes the downported `702` branch on every push to `main`

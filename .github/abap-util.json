@@ -1,0 +1,22 @@
+{
+  "master": "abap-util/abap-util",
+  "commit": "305e491ec17c324b0e59e4407cec6d6d009131aa",
+  "rename": [
+    ["z2ui5_cl_se16_context", "zabaputil_cl_util_context"],
+    ["z2ui5_cx_se16_error", "zabaputil_cx_util_error"]
+  ],
+  "copies": [
+    {
+      "copy": "src/z2ui5_cl_se16_context.clas.abap",
+      "master": "src/zabaputil_cl_util_context.clas.abap",
+      "trimmed": true,
+      "settled": {
+        "class_constructor": "trimmed with the copy: it sets only the constants this copy declares (newline, horizontal tab, public); the master sets every cv_* it has"
+      }
+    },
+    {
+      "copy": "src/z2ui5_cx_se16_error.clas.abap",
+      "master": "src/zabaputil_cx_util_error.clas.abap"
+    }
+  ]
+}

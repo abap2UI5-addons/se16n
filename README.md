@@ -116,6 +116,7 @@ adds the check that fits their system.
 npm ci
 npm run check           # all gates below, as in CI
 npm run lint            # abaplint, Standard ABAP (v750)
+npm run check:702       # a scratch copy downported to 7.02 and linted (src/ untouched)
 npm run check:cloud     # abaplint, ABAP Cloud
 npm run check:abap2ui5  # abap2UI5-linter over apps and views
 npm run rename          # namespace rename check
