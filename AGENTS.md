@@ -23,8 +23,9 @@ documentation must be in English.
 `z2ui5_cl_se16_context` is a **renamed copy** of `zabaputil_cl_util_context`
 from the [abap-util](https://github.com/abap-util/abap-util) **master catalog**,
 **trimmed to the methods this addon uses** (`rtti_create_tab_by_name`,
-`filter_get_sql_where`) plus the private helpers, types and constants those
-need. `z2ui5_cx_se16_error` is the master's `zabaputil_cx_util_error`, renamed
+`filter_get_sql_where`, and `msg_get_t`, which the constructor of
+`z2ui5_cx_se16_error` calls to render a message structure) plus the private
+helpers, types and constants those need. `z2ui5_cx_se16_error` is the master's `zabaputil_cx_util_error`, renamed
 and copied as-is. This keeps the install dependency-free (abapGit has no
 dependency management).
 
