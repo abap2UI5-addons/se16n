@@ -28,8 +28,8 @@ need. `z2ui5_cx_se16_error` is the master's `zabaputil_cx_util_error`, renamed
 and copied as-is. This keeps the install dependency-free (abapGit has no
 dependency management).
 
-1. **Nothing from the core's frozen `src/99/01`.** `z2ui5_cl_util*` and
-   `z2ui5_cx_util_error` are kept in abap2UI5 for compatibility only; the app
+1. **Nothing of abap2UI5-ext.** `z2ui5_cl_util*` and `z2ui5_cx_util_error`
+   left the core with its `src/99/01` for abap2UI5-ext; the app
    calls `z2ui5_cl_se16_context=>…`, every utility exception is
    `z2ui5_cx_se16_error`.
 2. **Method-level trimming** applies to the context class only, and keeps
