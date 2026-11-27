@@ -9,7 +9,12 @@ CLASS z2ui5_cl_se16_context DEFINITION
     " directly, so the dependency on that SAP standard class lives in exactly
     " one place (this class' class_constructor) and can be ported once for
     " non-ABAP runtimes (e.g. transpiled JS).
-    CLASS-DATA cv_char_util_newline TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_util_newline        TYPE c LENGTH 1 READ-ONLY.
+    CLASS-DATA cv_char_util_horizontal_tab TYPE c LENGTH 1 READ-ONLY.
+
+    " the visibility constant error_get_attributes filters on, so callers do
+    " not reference cl_abap_objectdescr directly
+    CLASS-DATA cv_objectdescr_public       TYPE c LENGTH 1 READ-ONLY.
 
     CLASS-METHODS class_constructor.
 
@@ -45,6 +50,22 @@ CLASS z2ui5_cl_se16_context DEFINITION
 
     TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_filter_multi WITH EMPTY KEY.
 
+    TYPES:
+      BEGIN OF ty_s_name_value,
+        n TYPE string,
+        v TYPE string,
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_sy,
+        datum TYPE d,
+        uzeit TYPE t,
+        uname TYPE c LENGTH 12,
+        sysid TYPE c LENGTH 8,
+        saprl TYPE c LENGTH 4,
+      END OF ty_s_sy.
+
     CLASS-METHODS filter_get_sql_where
       IMPORTING
         val           TYPE ty_t_filter_multi
@@ -61,6 +82,83 @@ CLASS z2ui5_cl_se16_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    " THE one place that reads a system field for its VALUE - date, time,
+    " user, system id, release. Every other class asks here
+    " (sy_get( )-uname), for two reasons: ABAP for Cloud Development reports
+    " the old system fields on every statement that names one ("The old
+    " variant of SY-DATUM should not be used ..."), so one reader is one
+    " finding per field instead of one per use; and the day one of them
+    " has to come from another API, it changes here and nowhere else.
+    " Not meant: sy-subrc, sy-tabix and sy-index - those are the result of
+    " the statement before them and have to be read where it stands
+    CLASS-METHODS sy_get
+      RETURNING
+        VALUE(result) TYPE ty_s_sy.
+
+    CLASS-METHODS c_trim
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_get_type_kind
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_check_clike
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " abap_true for values that can be rendered into a text without a
+    " conversion dump - the elementary types. Anything structured (struct,
+    " table, reference) must be excluded before a generic `|{ val }|`.
+    CLASS-METHODS rtti_check_printable
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS rtti_get_classname_by_ref
+      IMPORTING
+        val           TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_get_t_attri_by_oref
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_attrdescr_tab.
+
+    " The source-code position an exception was raised at, as
+    " `<program> / <include> / line <n>`; empty when the runtime supplies
+    " none. Wraps cx_root->get_source_position so the dependency on the SAP
+    " standard exception API stays inside this class. This is what identifies
+    " the failing method for exceptions that carry no text of their own -
+    " a CX_SY_MOVE_CAST_ERROR only says which types did not match, the
+    " position says where.
+    CLASS-METHODS error_get_source_position
+      IMPORTING
+        val           TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " Every public, non-static, non-constant attribute of an exception that
+    " has a printable value - the class-specific payload the text alone does
+    " not carry (source/target type of a cast error, the offending value of a
+    " conversion error, DB object of an SQL error, ...). The general cx_root
+    " attributes (PREVIOUS, TEXTID, IS_RESUMABLE, KERNEL_ERRID) are skipped -
+    " the caller renders them itself or they carry no information.
+    CLASS-METHODS error_get_attributes
+      IMPORTING
+        val           TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE ty_t_name_value.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -72,8 +170,25 @@ CLASS z2ui5_cl_se16_context DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    " Guards the cycle z2ui5_cx_se16_error=>constructor -> uuid_get_c32 ->
-    " RAISE z2ui5_cx_se16_error -> ... see uuid_get_c32.
+    " The option that selects the complement: EQ <-> NE, LT <-> GE, LE <-> GT,
+    " CP <-> NP, BT <-> NB. Any other option comes back as it is.
+    CLASS-METHODS filter_option_negate
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    " whether a type kind is a number: i, int1, int2, int8, p, f,
+    " decfloat16, decfloat34 - the one list the number checks share. int8
+    " by its value `8`, a constant lower releases do not have
+    CLASS-METHODS rtti_check_typekind_number
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    " Guards uuid_get_c32 against re-entering itself through the exception it
+    " raises (z2ui5_cx_se16_error reads a uuid for its full report).
     CLASS-DATA gv_uuid_failed TYPE abap_bool.
 ENDCLASS.
 
@@ -82,7 +197,10 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
 
   METHOD class_constructor.
 
-    cv_char_util_newline = cl_abap_char_utilities=>newline.
+    cv_char_util_newline        = cl_abap_char_utilities=>newline.
+    cv_char_util_horizontal_tab = cl_abap_char_utilities=>horizontal_tab.
+
+    cv_objectdescr_public            = cl_abap_objectdescr=>public.
 
   ENDMETHOD.
 
@@ -160,42 +278,40 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
     DATA(lv_option) = range-option.
 
     IF range-sign = `E`.
-      CASE lv_option.
-        WHEN `EQ`. lv_option = `NE`.
-        WHEN `NE`. lv_option = `EQ`.
-        WHEN `LT`. lv_option = `GE`.
-        WHEN `LE`. lv_option = `GT`.
-        WHEN `GT`. lv_option = `LE`.
-        WHEN `GE`. lv_option = `LT`.
-        WHEN `CP`. lv_option = `NP`.
-        WHEN `NP`. lv_option = `CP`.
-        WHEN `BT`. lv_option = `NB`.
-        WHEN `NB`. lv_option = `BT`.
-      ENDCASE.
+      lv_option = filter_option_negate( lv_option ).
     ENDIF.
 
-    " CP: only * and + are wildcards - a _ or % the user typed is a plain
-    " character, as in an IN range, so it is escaped
-    DATA(lv_like) = replace( val  = lv_low
-                             sub  = `#`
-                             with = `##`
-                             occ  = 0 ).
-    lv_like = replace( val  = lv_like
-                       sub  = `%`
-                       with = `#%`
-                       occ  = 0 ).
-    lv_like = replace( val  = lv_like
-                       sub  = `_`
-                       with = `#_`
-                       occ  = 0 ).
-    lv_like = replace( val  = lv_like
-                       sub  = `*`
-                       with = `%`
-                       occ  = 0 ).
-    lv_like = replace( val  = lv_like
-                       sub  = `+`
-                       with = `_`
-                       occ  = 0 ).
+    " CP: * and + are the wildcards and # makes the next character a plain
+    " one (`#*` is a star), as in an IN range. A _ or % the user typed is a
+    " plain character, so it is escaped for LIKE
+    DATA(lv_like) = ``.
+    DATA(lv_pos) = 0.
+    DATA(lv_len) = strlen( lv_low ).
+    WHILE lv_pos < lv_len.
+      DATA(lv_char) = substring( val = lv_low
+                                 off = lv_pos
+                                 len = 1 ).
+      IF lv_char = `#` AND lv_pos + 1 < lv_len.
+        lv_pos = lv_pos + 1.
+        lv_char = substring( val = lv_low
+                             off = lv_pos
+                             len = 1 ).
+        IF lv_char CA `#%_`.
+          lv_like = lv_like && `#` && lv_char.
+        ELSE.
+          lv_like = lv_like && lv_char.
+        ENDIF.
+      ELSEIF lv_char = `*`.
+        lv_like = lv_like && `%`.
+      ELSEIF lv_char = `+`.
+        lv_like = lv_like && `_`.
+      ELSEIF lv_char CA `#%_`.
+        lv_like = lv_like && `#` && lv_char.
+      ELSE.
+        lv_like = lv_like && lv_char.
+      ENDIF.
+      lv_pos = lv_pos + 1.
+    ENDWHILE.
 
     CASE lv_option.
       WHEN `EQ`.
@@ -218,6 +334,40 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
         result = |{ fieldname } BETWEEN '{ lv_low }' AND '{ lv_high }'|.
       WHEN `NB`.
         result = |{ fieldname } NOT BETWEEN '{ lv_low }' AND '{ lv_high }'|.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD filter_option_negate.
+
+    result = val.
+    CASE result.
+      WHEN `EQ`. result = `NE`.
+      WHEN `NE`. result = `EQ`.
+      WHEN `LT`. result = `GE`.
+      WHEN `LE`. result = `GT`.
+      WHEN `GT`. result = `LE`.
+      WHEN `GE`. result = `LT`.
+      WHEN `CP`. result = `NP`.
+      WHEN `NP`. result = `CP`.
+      WHEN `BT`. result = `NB`.
+      WHEN `NB`. result = `BT`.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_typekind_number.
+
+    CASE val.
+      WHEN cl_abap_typedescr=>typekind_int
+          OR cl_abap_typedescr=>typekind_int1
+          OR cl_abap_typedescr=>typekind_int2
+          OR cl_abap_typedescr=>typekind_packed
+          OR cl_abap_typedescr=>typekind_float
+          OR cl_abap_typedescr=>typekind_decfloat16
+          OR cl_abap_typedescr=>typekind_decfloat34
+          OR `8`.
+        result = abap_true.
     ENDCASE.
 
   ENDMETHOD.
@@ -263,9 +413,19 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
           CATCH cx_root.
 
             lv_fm = `GUID_CREATE`.
+            " error_message: a message the module sends would otherwise end
+            " the request, which no CATCH reaches
             CALL FUNCTION lv_fm
               IMPORTING
-                ev_guid_32 = lv_uuid.
+                ev_guid_32    = lv_uuid
+              EXCEPTIONS
+                error_message = 1
+                OTHERS        = 2.
+            IF sy-subrc <> 0.
+              RAISE EXCEPTION TYPE z2ui5_cx_se16_error
+                EXPORTING
+                  val = `GUID_CREATE_FAILED`.
+            ENDIF.
 
         ENDTRY.
 
@@ -276,10 +436,10 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
         " consumer's single top-level catch can turn it into a handled error.
         " ASSERT would raise the uncatchable ASSERTION_FAILED and bypass that
         " catch (short dump instead of a handled error response).
-        " z2ui5_cx_se16_error=>constructor itself calls uuid_get_c32, so the
-        " raise below re-enters this method. gv_uuid_failed makes that nested
-        " call return an empty UUID instead of raising again (endless recursion
-        " until the stack overflows, which would defeat the handled error above).
+        " z2ui5_cx_se16_error reads a uuid when it renders its full report,
+        " so a renderer running while the raise below is on its way would
+        " re-enter this method. gv_uuid_failed makes that nested call return an
+        " empty UUID instead of raising again.
         IF gv_uuid_failed = abap_true.
           RETURN.
         ENDIF.
@@ -292,5 +452,209 @@ CLASS z2ui5_cl_se16_context IMPLEMENTATION.
             CLEAR gv_uuid_failed.
         ENDTRY.
     ENDTRY.
+  ENDMETHOD.
+
+  METHOD sy_get.
+
+    result-datum = sy-datum.
+    result-uzeit = sy-uzeit.
+    result-uname = sy-uname.
+    result-sysid = sy-sysid.
+    result-saprl = sy-saprl.
+
+  ENDMETHOD.
+
+  METHOD c_trim.
+
+    result = val.
+    " spaces and tabs alternate at either end (`\t \tx`) - one pass of each
+    " leaves the inner layer standing, so strip until nothing changes. No
+    " fixed number of passes: ten left the eleventh layer of a padded value
+    " standing. Every pass that changes something shortens the string, so
+    " the loop ends
+    DO.
+      DATA(lv_before) = result.
+      result = shift_left( shift_right( result ) ).
+      result = shift_right( val = result
+                            sub = cv_char_util_horizontal_tab ).
+      result = shift_left( val = result
+                           sub = cv_char_util_horizontal_tab ).
+      IF result = lv_before.
+        EXIT.
+      ENDIF.
+    ENDDO.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_type_kind.
+
+    result = cl_abap_datadescr=>get_data_type_kind( val ).
+
+  ENDMETHOD.
+
+  METHOD rtti_check_clike.
+
+    CASE rtti_get_type_kind( val ).
+      " typekind_clike/_csequence are generic kinds of formal parameters and
+      " can never be returned for a concrete data object - list the concrete
+      " character-like kinds (c, string, n, d, t) instead
+      WHEN cl_abap_datadescr=>typekind_char OR
+          cl_abap_datadescr=>typekind_string OR
+          cl_abap_datadescr=>typekind_num OR
+          cl_abap_datadescr=>typekind_date OR
+          cl_abap_datadescr=>typekind_time.
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD rtti_check_printable.
+
+    IF rtti_check_clike( val ) = abap_true.
+      result = abap_true.
+      RETURN.
+    ENDIF.
+
+    DATA(lv_type_kind) = rtti_get_type_kind( val ).
+    result = xsdbool( lv_type_kind = cl_abap_datadescr=>typekind_hex
+                      OR rtti_check_typekind_number( lv_type_kind ) = abap_true ).
+
+  ENDMETHOD.
+
+  METHOD rtti_get_classname_by_ref.
+
+    " an unbound reference has no class - answer with an empty name instead
+    " of letting the RTTI call fail. Callers ask this while rendering (error
+    " context, response header), where a half-built object graph is normal
+    IF val IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    result = substring_after( val = cl_abap_classdescr=>get_class_name( val )
+                              sub = `\CLASS=` ).
+
+  ENDMETHOD.
+
+  METHOD rtti_get_t_attri_by_oref.
+
+    DATA lo_descr TYPE REF TO cl_abap_typedescr.
+
+    " describe_by_object_ref raises the classic exception REFERENCE_IS_INITIAL
+    " for an initial reference - called functionally that is a runtime error no
+    " CATCH reaches
+    cl_abap_objectdescr=>describe_by_object_ref( EXPORTING  p_object_ref         = val
+                                                 RECEIVING p_descr_ref           = lo_descr
+                                                 EXCEPTIONS reference_is_initial = 1
+                                                            OTHERS               = 2 ).
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_se16_error
+        EXPORTING
+          val = `RTTI_REFERENCE_IS_INITIAL`.
+    ENDIF.
+    result = CAST cl_abap_classdescr( lo_descr )->attributes.
+
+  ENDMETHOD.
+
+  METHOD error_get_source_position.
+
+    " typed like the EXPORTING parameters of get_source_position (syrepid is
+    " CHAR40) - they are passed by reference, so a string would not be
+    " type-compatible here
+    DATA lv_program TYPE c LENGTH 40.
+    DATA lv_include TYPE c LENGTH 40.
+    DATA lv_line    TYPE i.
+
+    IF val IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    " open-abap - the transpiled JS runtime behind the node tests - implements
+    " get_source_position by reading a field that only the RAISE statement
+    " writes, and fails with a JS TypeError for every other exception (a
+    " runtime-thrown one, or one built with NEW). That error is not an ABAP
+    " exception, so the TRY below cannot intercept it and the caller would go
+    " down instead of reporting the error it was diagnosing. sy-saprl is
+    " `OPEN` on that runtime and a real release everywhere else.
+    IF sy_get( )-saprl = `OPEN`.
+      RETURN.
+    ENDIF.
+
+    TRY.
+        val->get_source_position( IMPORTING program_name = lv_program
+                                            include_name = lv_include
+                                            source_line  = lv_line ).
+      CATCH cx_root ##NO_HANDLER.
+        " never let the diagnostic be the reason a caller fails
+    ENDTRY.
+
+    IF lv_program IS INITIAL AND lv_line IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    result = c_trim( lv_program ).
+    " the include is the interesting part for a class (...CM001 = the method
+    " that raised); repeating it when it equals the program adds nothing
+    IF lv_include IS NOT INITIAL AND lv_include <> lv_program.
+      result = |{ result } / { c_trim( lv_include ) }|.
+    ENDIF.
+    IF lv_line IS NOT INITIAL.
+      result = |{ result } / line { lv_line }|.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD error_get_attributes.
+
+    " declared, NOT `DATA(lv_name) = CONV string( lr_attri->name )`: a CONV
+    " that is the whole right-hand side of an assignment is "Redundant
+    " conversion for type STRING" in SLIN - the assignment converts by
+    " itself. The variable stays a string on purpose: the RTTI name is a
+    " CHAR field whose trailing blanks have no business in the rendered name
+    DATA lv_name TYPE string.
+
+    FIELD-SYMBOLS <comp> TYPE any.
+
+    IF val IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    TRY.
+        DATA(lt_attri) = rtti_get_t_attri_by_oref( val ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri) "#EC CI_SORTSEQ
+         WHERE visibility  = cv_objectdescr_public
+           AND is_constant = abap_false
+           AND is_class    = abap_false.
+
+      CASE lr_attri->name.
+          " rendered by the caller (PREVIOUS as the next chain entry,
+          " KERNEL_ERRID as its own line) or without information value
+        WHEN `PREVIOUS` OR `TEXTID` OR `IS_RESUMABLE` OR `KERNEL_ERRID`.
+          CONTINUE.
+      ENDCASE.
+
+      lv_name = lr_attri->name.
+      " UNASSIGN + IS ASSIGNED, not sy-subrc - see unassign_data for the
+      " release behaviour (#1937). INSIDE A LOOP the stale-subrc reading is
+      " not just "skipped one attribute": a failed ASSIGN leaves the symbol
+      " on the PREVIOUS iteration's attribute, so a stale 0 renders that
+      " value under this attribute's name - a wrong value in the error dump,
+      " which is the one place a reader has nothing else to go by
+      UNASSIGN <comp>.
+      ASSIGN val->(lv_name) TO <comp>.
+      IF <comp> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
+      IF rtti_check_printable( <comp> ) = abap_false OR <comp> IS INITIAL.
+        CONTINUE.
+      ENDIF.
+
+      INSERT VALUE #( n = lv_name
+                      v = c_trim( |{ <comp> }| ) ) INTO TABLE result.
+    ENDLOOP.
+
   ENDMETHOD.
 ENDCLASS.

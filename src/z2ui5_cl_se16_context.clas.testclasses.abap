@@ -78,12 +78,13 @@ CLASS ltcl_filter_where IMPLEMENTATION.
 
   METHOD pattern_escaped.
 
-    " * and + are the wildcards - a typed _ or % only matches itself
+    " * and + are the wildcards - a typed _ or % only matches itself, and
+    " # makes the next character a plain one (#* is a star), as in an IN range
     DATA(lv_where) = z2ui5_cl_se16_context=>filter_get_sql_where( VALUE #(
         ( name    = `F`
-          t_range = VALUE #( ( sign = `I` option = `CP` low = `Z_T%#*+` ) ) ) ) ).
+          t_range = VALUE #( ( sign = `I` option = `CP` low = `Z_T%*#*+` ) ) ) ) ).
 
-    cl_abap_unit_assert=>assert_equals( exp = `( F LIKE 'Z#_T#%##%_' ESCAPE '#' )`
+    cl_abap_unit_assert=>assert_equals( exp = `( F LIKE 'Z#_T#%%*_' ESCAPE '#' )`
                                         act = lv_where ).
 
   ENDMETHOD.
