@@ -21,6 +21,7 @@ abap2UI5's transpiled Node runtime.
 | Gate | What it proves |
 | --- | --- |
 | `npm run lint` | abaplint: syntax and style, resolved against the abap2UI5 core and the sibling addons |
+| `npm run check:702` | the 7.02 downport: a scratch copy of `src/` in `build/702`, downported and linted with `.github/abaplint/abap_702.jsonc` (`.github/scripts/check-702.sh`) - `src/` is never rewritten |
 | `npm run check:cloud` | the same source compiles under ABAP Cloud restrictions |
 | `npm run check:abap2ui5` | [abap2UI5-linter](https://github.com/abap2UI5/linter): the app class and the view it builds, judged together — controls, members, bindings, the UI5 version floor, and a headless render of every view |
 | `npm run unit` | the ABAP Unit tests, transpiled and run on Node (`.github/scripts/unit.mjs`) |
